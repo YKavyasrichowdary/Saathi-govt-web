@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -69,6 +70,9 @@ const journeySteps = [
 
 export default function JourneyInterface() {
   const [active, setActive] = useState(3);
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "Ananya";
+  const firstName = userName.split(" ")[0];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -118,7 +122,7 @@ export default function JourneyInterface() {
 
           <div className="mt-5 space-y-3">
             <ChatBubble>
-              Hi Ananya — you're <b>82% ready</b> for
+              Hi {firstName} — you're <b>82% ready</b> for
               the NSP application.
             </ChatBubble>
 
@@ -151,7 +155,7 @@ export default function JourneyInterface() {
               </p>
 
               <h3 className="mt-1 text-xl font-semibold">
-                Ananya's path to scholarship
+                {firstName}'s path to scholarship
               </h3>
             </div>
 

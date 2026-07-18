@@ -20,6 +20,19 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
+      if (!existing.password) {
+        // User registered with OAuth, we can set their password now
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const updated = await prisma.user.update({
+          where: { email },
+          data: {
+            password: hashedPassword,
+            name: name || existing.name,
+          },
+        });
+        return NextResponse.json({ user: updated }, { status: 200 });
+      }
+
       return NextResponse.json(
         { message: "User already exists" },
         { status: 400 },

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { getSession } from "@/lib/auth";
 
 import { AppShell } from "@/components/AppShell";
 import { Card, SectionTitle } from "@/components/PageBits";
@@ -60,7 +61,10 @@ const MILESTONES = [
   },
 ];
 
-export default function JourneyPage() {
+export default async function JourneyPage() {
+  const session = await getSession();
+  const userName = session?.user?.name || "Ananya";
+  const firstName = userName.split(" ")[0];
   return (
     <AppShell
       title="My Journey"
@@ -142,7 +146,7 @@ export default function JourneyPage() {
               Since then you've completed 3 mock tests,
               uploaded 4 documents, and moved 30%
               closer to your dream.
-              Keep going, Ananya.
+              Keep going, {firstName}.
               This journey belongs to you."
             </p>
 

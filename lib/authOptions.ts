@@ -13,11 +13,21 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: "select_account",
+        },
+      },
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: "select_account",
+        },
+      },
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -92,10 +102,39 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      session.user = {
-        ...session.user,
-        id: token.id as string,
-      };
+      if (token?.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { id: true, name: true, email: true, image: true },
+          });
+          if (dbUser) {
+            session.user = {
+              ...session.user,
+              id: dbUser.id,
+              name: dbUser.name,
+              email: dbUser.email,
+              image: dbUser.image,
+            };
+          } else {
+            session.user = {
+              ...session.user,
+              id: token.id as string,
+            };
+          }
+        } catch (error) {
+          console.error("Error fetching user in session callback:", error);
+          session.user = {
+            ...session.user,
+            id: token.id as string,
+          };
+        }
+      } else {
+        session.user = {
+          ...session.user,
+          id: (token?.id || "") as string,
+        };
+      }
 
       return session;
     },

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AppShell } from "@/components/AppShell";
+import { getSession } from "@/lib/auth";
 import {
   Card,
   StatCard,
@@ -27,7 +28,11 @@ export const metadata = {
   },
 };
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await getSession();
+  const userName = session?.user?.name || "Ananya";
+  const firstName = userName.split(" ")[0];
+
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     day: "numeric",
@@ -36,7 +41,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell
-      title="Good morning, Ananya."
+      title={`Good morning, ${firstName}.`}
       subtitle={`${today} · You have 3 gentle tasks today.`}
       actions={
         <Link

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Metadata } from "next";
+import { useSession } from "next-auth/react";
 
 import { AppShell } from "@/components/AppShell";
 
@@ -32,12 +33,26 @@ type Msg = {
 // };
 
 export default function CompanionPage() {
-  const [msgs, setMsgs] = useState<Msg[]>([
-    {
-      from: "saathi",
-      text: "Good to see you again, Ananya. Want to keep working on your NMMS essay, or something new today?",
-    },
-  ]);
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "Ananya";
+  const firstName = userName.split(" ")[0];
+
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+
+  useEffect(() => {
+    setMsgs((prev) => {
+      const welcomeText = `Good to see you again, ${firstName}. Want to keep working on your NMMS essay, or something new today?`;
+      if (prev.length === 0) {
+        return [{ from: "saathi", text: welcomeText }];
+      }
+      if (prev[0]?.from === "saathi" && prev[0].text.startsWith("Good to see you again,")) {
+        const updated = [...prev];
+        updated[0] = { ...updated[0], text: welcomeText };
+        return updated;
+      }
+      return prev;
+    });
+  }, [firstName]);
 
   const [text, setText] = useState("");
 
