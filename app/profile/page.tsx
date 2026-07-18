@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 
 import { AppShell } from "@/components/AppShell";
 import { Card, SectionTitle } from "@/components/PageBits";
@@ -17,6 +18,11 @@ type Tab = (typeof TABS)[number];
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "Ananya Sharma";
+  const userEmail = session?.user?.email || "ananya@example.com";
+  const userImage = session?.user?.image || null;
+  const avatarLetter = userName.charAt(0).toUpperCase();
 
   const [tab, setTab] = useState<Tab>("Profile");
 
@@ -52,13 +58,17 @@ export default function ProfilePage() {
               <SectionTitle title="Your details" />
 
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-2xl font-bold text-primary-foreground">
-                  A
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-secondary text-2xl font-bold text-primary-foreground">
+                  {userImage ? (
+                    <img src={userImage} alt={userName} className="h-full w-full object-cover" />
+                  ) : (
+                    avatarLetter
+                  )}
                 </div>
 
                 <div>
                   <div className="text-lg font-bold text-foreground">
-                    Ananya Sharma
+                    {userName}
                   </div>
 
                   <div className="text-xs text-muted-foreground">
@@ -73,8 +83,8 @@ export default function ProfilePage() {
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 {[
-                  ["Full name", "Ananya Sharma"],
-                  ["Email", "ananya@example.com"],
+                  ["Full name", userName],
+                  ["Email", userEmail],
                   ["Phone", "+91 98xxxxxx21"],
                   ["School", "Kendriya Vidyalaya No. 1"],
                   ["State", "Madhya Pradesh"],
@@ -86,6 +96,7 @@ export default function ProfilePage() {
                     </span>
 
                     <input
+                      key={value}
                       defaultValue={value}
                       className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
                     />
@@ -187,7 +198,7 @@ export default function ProfilePage() {
                 </div>
 
                 <button
-                  onClick={() => router.push("/auth/signin")}
+                  onClick={() => signOut({ callbackUrl: "/auth/signin" })}
                   className="mt-4 inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"
                 >
                   Sign out

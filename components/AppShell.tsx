@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { useSession } from "next-auth/react";
 
 import {
   LayoutDashboard,
@@ -217,6 +218,10 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "Ananya";
+  const userImage = session?.user?.image || null;
+  const avatarLetter = userName.charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background">
@@ -290,10 +295,14 @@ export function AppShell({
 
             <Link
               href="/profile"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-sm font-bold text-primary-foreground"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-secondary text-sm font-bold text-primary-foreground"
               aria-label="Profile"
             >
-              A
+              {userImage ? (
+                <img src={userImage} alt={userName} className="h-full w-full object-cover" />
+              ) : (
+                avatarLetter
+              )}
             </Link>
           </div>
         </header>
