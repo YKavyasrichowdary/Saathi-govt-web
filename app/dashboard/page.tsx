@@ -18,6 +18,9 @@ import {
   Bell,
 } from "lucide-react";
 
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+
 export const metadata = {
   title: "Dashboard · SAATHI",
   description:
@@ -30,7 +33,20 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const session = await getSession();
-  const userName = session?.user?.name || "Ananya";
+
+  if (!session?.user?.id) {
+    redirect("/auth/signin");
+  }
+
+  const profile = await prisma.profile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!profile) {
+    redirect("/onboarding");
+  }
+
+  const userName = session.user.name || "Ananya";
   const firstName = userName.split(" ")[0];
 
   const today = new Date().toLocaleDateString("en-IN", {

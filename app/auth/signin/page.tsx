@@ -72,7 +72,13 @@ export default function SigninPage() {
       });
 
       if (res?.error) {
-        toast.error("Invalid email or password");
+        let msg = res.error;
+        if (msg === "CredentialsSignin" || msg.includes("CredentialsSignin")) {
+          msg = "Invalid email or password";
+        } else if (msg.startsWith("Error: ")) {
+          msg = msg.replace("Error: ", "");
+        }
+        toast.error(msg);
         return;
       }
 
