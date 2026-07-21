@@ -2,9 +2,10 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
+import loginService from "@/services/auth/login.service";
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -38,50 +39,27 @@ export const authOptions: NextAuthOptions = {
 
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log("Auth: Missing email or password");
           return null;
         }
 
         try {
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
-          });
-
-          if (!user) {
-            console.log("Auth: User not found for email:", credentials.email);
-            return null;
-          }
-
-          if (!user.password) {
-            console.log("Auth: User has no password set");
-            return null;
-          }
-
-          const isValid = await bcrypt.compare(
-            credentials.password,
-            user.password,
-          );
-
-          if (!isValid) {
-            console.log("Auth: Password mismatch for user:", credentials.email);
-            return null;
-          }
-
-          console.log(
-            "Auth: Successfully authenticated user:",
-            user.email,
-            
+          const user = await loginService.login(
+            credentials.email,
+            credentials.password
           );
 
           return {
             id: user.id,
             name: user.name,
             email: user.email,
-           
+            image: user.image,
           };
         } catch (error) {
-          console.error("Auth error:", error);
-          return null;
+          console.error("Authorize error:", error);
+          if (error instanceof Error) {
+            throw error;
+          }
+          throw new Error("Invalid email or password.");
         }
       },
     }),

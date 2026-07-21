@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo  from "@/components/Logo";
-import { ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function OnboardingClient() {
   const router = useRouter();
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const s = STEPS[step];
   const current = answers[s.id] ?? [];
@@ -43,9 +45,30 @@ export default function OnboardingClient() {
     }
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (step === STEPS.length - 1) {
-      router.push("/dashboard");
+      try {
+        setIsSubmitting(true);
+        const res = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(answers),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          toast.error(err.message || "Failed to save profile");
+          setIsSubmitting(false);
+          return;
+        }
+
+        toast.success("Welcome to SAATHI! ✨");
+        router.push("/dashboard");
+        router.refresh();
+      } catch {
+        toast.error("Something went wrong");
+        setIsSubmitting(false);
+      }
     } else {
       setStep((prev) => prev + 1);
     }
@@ -107,20 +130,26 @@ export default function OnboardingClient() {
         <div className="mt-12 flex items-center justify-between">
           <button
             onClick={handleBack}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </button>
 
           <button
-            disabled={!canNext}
+            disabled={!canNext || isSubmitting}
             onClick={handleNext}
             className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-[0_10px_30px_-10px_oklch(0.55_0.2_262/0.6)] hover:-translate-y-[1px] disabled:pointer-events-none disabled:opacity-40"
           >
-            {step === STEPS.length - 1 ? "Enter SAATHI" : "Continue"}
-
-            <ArrowRight className="h-4 w-4" />
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                {step === STEPS.length - 1 ? "Enter SAATHI" : "Continue"}
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </button>
         </div>
       </main>
