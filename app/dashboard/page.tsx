@@ -1,13 +1,14 @@
 import Link from "next/link";
 
 import { AppShell } from "@/components/AppShell";
+import { studentNavigation } from "@/config/student-navigation";
 import { getSession } from "@/lib/auth";
 import {
   Card,
   StatCard,
   SectionTitle,
-  OpportunityCard,
 } from "@/components/PageBits";
+import OpportunityGrid from "@/components/opportunity/OpportunityGrid";
 
 import {
   ArrowRight,
@@ -20,6 +21,8 @@ import {
 
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+
+import studentOpportunityService from "@/services/student-opportunity/student-opportunity.service";
 
 export const metadata = {
   title: "Dashboard · SAATHI",
@@ -38,6 +41,15 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  if (user?.role === "ADMIN") {
+    redirect("/admin");
+  }
+
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
   });
@@ -45,6 +57,11 @@ export default async function DashboardPage() {
   if (!profile) {
     redirect("/onboarding");
   }
+
+  const opportunities =
+    await studentOpportunityService.getRecommended(
+      session.user.id
+    );
 
   const userName = session.user.name || "Ananya";
   const firstName = userName.split(" ")[0];
@@ -57,6 +74,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell
+      navigation={studentNavigation}
       title={`Good morning, ${firstName}.`}
       subtitle={`${today} · You have 3 gentle tasks today.`}
       actions={
@@ -216,23 +234,7 @@ export default async function DashboardPage() {
               }
             />
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <OpportunityCard
-                tag="Scholarship"
-                title="NMMS 2026 — Class 8 to 12"
-                org="Ministry of Education"
-                deadline="21 Nov"
-                amount="₹12,000 / year"
-              />
-
-              <OpportunityCard
-                tag="Hackathon"
-                title="Smart India Hackathon"
-                org="AICTE · SIH"
-                deadline="3 Dec"
-                amount="₹1L prize"
-              />
-            </div>
+            <OpportunityGrid opportunities={opportunities} />
           </div>
         </div>
 

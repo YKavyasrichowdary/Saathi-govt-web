@@ -53,6 +53,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             email: user.email,
             image: user.image,
+            role: user.role,
           };
         } catch (error) {
           console.error("Authorize error:", error);
@@ -74,6 +75,7 @@ export const authOptions: NextAuthOptions = {
       // First login
       if (user) {
         token.id = user.id;
+        token.role = (user as any).role;
       }
 
       return token;
@@ -84,7 +86,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { id: true, name: true, email: true, image: true },
+            select: { id: true, name: true, email: true, image: true, role: true },
           });
           if (dbUser) {
             session.user = {
@@ -93,11 +95,13 @@ export const authOptions: NextAuthOptions = {
               name: dbUser.name,
               email: dbUser.email,
               image: dbUser.image,
+              role: dbUser.role,
             };
           } else {
             session.user = {
               ...session.user,
               id: token.id as string,
+              role: (token.role as string) || "STUDENT",
             };
           }
         } catch (error) {
@@ -105,12 +109,14 @@ export const authOptions: NextAuthOptions = {
           session.user = {
             ...session.user,
             id: token.id as string,
+            role: (token.role as string) || "STUDENT",
           };
         }
       } else {
         session.user = {
           ...session.user,
           id: (token?.id || "") as string,
+          role: (token?.role as string) || "STUDENT",
         };
       }
 

@@ -1,10 +1,16 @@
+import { EducationLevel, Gender } from "@prisma/client";
+
 export interface CreateProfileDto {
   phone?: string;
-  college?: string;
+  gender?: Gender;
+  dateOfBirth?: Date;
+  educationLevel?: EducationLevel;
+  institutionName?: string;
   university?: string;
-  degree?: string;
-  branch?: string;
-  currentYear?: number;
+  course?: string;
+  specialization?: string;
+  currentSemester?: string;
+  graduationYear?: number;
   cgpa?: number;
   city?: string;
   state?: string;

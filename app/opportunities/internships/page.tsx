@@ -1,52 +1,23 @@
-import { OpportunityCard } from "@/components/PageBits";
+import OpportunityCard from "@/components/opportunity/OpportunityCard";
+import studentOpportunityService from "@/services/student-opportunity/student-opportunity.service";
 
-export default function InternshipsPage() {
-  const internships = [
-    {
-      title: "ISRO Summer Internship — Space Science",
-      org: "ISRO",
-      deadline: "15 Feb",
-      amount: "Stipend + certificate",
-    },
-    {
-      title: "IIT Bombay Research Internship",
-      org: "IIT Bombay",
-      deadline: "1 Mar",
-      amount: "₹15,000 / month",
-    },
-    {
-      title: "Zerodha Varsity Content Internship",
-      org: "Zerodha",
-      deadline: "Rolling",
-      amount: "₹25,000 / month",
-    },
-    {
-      title: "SEBI National Institute Internship",
-      org: "SEBI",
-      deadline: "20 Dec",
-      amount: "₹20,000 / month",
-    },
-    {
-      title: "Smart Cities Mission Fellowship",
-      org: "MoHUA",
-      deadline: "10 Jan",
-      amount: "₹40,000 / month",
-    },
-    {
-      title: "Microsoft Engage — 6 week program",
-      org: "Microsoft India",
-      deadline: "5 Feb",
-      amount: "Mentorship + PPO",
-    },
-  ];
+export default async function InternshipsPage() {
+  const opportunities = await studentOpportunityService.getByType("INTERNSHIP");
+
+  if (!opportunities.length) {
+    return (
+      <div className="surface-card p-12 text-center text-muted-foreground rounded-2xl">
+        No open internships available right now. Check back soon!
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {internships.map((internship) => (
+      {opportunities.map((opp) => (
         <OpportunityCard
-          key={internship.title}
-          tag="Internship"
-          {...internship}
+          key={opp.id}
+          opportunity={opp}
         />
       ))}
     </div>

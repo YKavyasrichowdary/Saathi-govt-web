@@ -16,10 +16,10 @@ export function calculateProfileCompletion({
   let score = 0;
 
   if (profile.phone) score += 5;
-  if (profile.college) score += 10;
-  if (profile.degree) score += 10;
-  if (profile.branch) score += 10;
-  if (profile.currentYear) score += 5;
+  if (profile.institutionName) score += 10;
+  if (profile.educationLevel) score += 10;
+  if (profile.course) score += 10;
+  if (profile.graduationYear) score += 5;
   if (profile.cgpa) score += 10;
   if (profile.bio) score += 10;
   if (profile.linkedinUrl) score += 10;

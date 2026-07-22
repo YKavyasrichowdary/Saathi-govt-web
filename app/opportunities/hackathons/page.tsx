@@ -1,52 +1,23 @@
-import { OpportunityCard } from "@/components/PageBits";
+import OpportunityCard from "@/components/opportunity/OpportunityCard";
+import studentOpportunityService from "@/services/student-opportunity/student-opportunity.service";
 
-export default function HackathonsPage() {
-  const hackathons = [
-    {
-      title: "Smart India Hackathon 2026",
-      org: "AICTE + MoE",
-      deadline: "3 Dec",
-      amount: "₹1L per team",
-    },
-    {
-      title: "HackWithInfy — Infosys Coding Contest",
-      org: "Infosys",
-      deadline: "18 Jan",
-      amount: "PPO + prizes",
-    },
-    {
-      title: "Flipkart GRiD Challenge",
-      org: "Flipkart",
-      deadline: "22 Nov",
-      amount: "₹4L + internship",
-    },
-    {
-      title: "Toycathon by MoE",
-      org: "Ministry of Education",
-      deadline: "12 Feb",
-      amount: "₹50,000 + mentorship",
-    },
-    {
-      title: "IIT Delhi Tryst Hackathon",
-      org: "IIT Delhi",
-      deadline: "9 Mar",
-      amount: "₹1.5L pool",
-    },
-    {
-      title: "Google Solution Challenge",
-      org: "Google Developer Student Clubs",
-      deadline: "24 Jan",
-      amount: "Global recognition",
-    },
-  ];
+export default async function HackathonsPage() {
+  const opportunities = await studentOpportunityService.getByType("HACKATHON");
+
+  if (!opportunities.length) {
+    return (
+      <div className="surface-card p-12 text-center text-muted-foreground rounded-2xl">
+        No open hackathons available right now. Check back soon!
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {hackathons.map((hackathon) => (
+      {opportunities.map((opp) => (
         <OpportunityCard
-          key={hackathon.title}
-          tag="Hackathon"
-          {...hackathon}
+          key={opp.id}
+          opportunity={opp}
         />
       ))}
     </div>
