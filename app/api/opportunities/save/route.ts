@@ -81,16 +81,18 @@ export async function DELETE(
       success: true,
     });
 
-  } catch {
-
+  } catch (error) {
     return NextResponse.json(
       {
         success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to unsave opportunity",
       },
       {
         status: 400,
       }
     );
-
   }
 }

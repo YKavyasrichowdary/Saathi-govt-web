@@ -1,83 +1,79 @@
 import prisma from "@/lib/prisma";
 
-import { Prisma } from "@prisma/client";
-
 class OpportunityRepository {
-  async create(data: Prisma.OpportunityCreateInput) {
-    return prisma.opportunity.create({
-      data,
-    });
-  }
+  async getDashboardOpportunities(
+  userId: string,
+  limit = 6
+) {
+  return prisma.opportunity.findMany({
+    where: {
+      status: "OPEN",
+    },
 
-  async findAll() {
-    return prisma.opportunity.findMany({
-      orderBy: {
+    include: {
+      bookmarks: {
+        where: {
+          userId,
+        },
+
+        select: {
+          id: true,
+        },
+      },
+    },
+
+    orderBy: [
+      {
+        featured: "desc",
+      },
+      {
+        deadline: "asc",
+      },
+      {
         createdAt: "desc",
       },
-    });
-  }
+    ],
 
-  async findById(id: string) {
-    return prisma.opportunity.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
+    take: limit,
+  });
+}
 
-  async update(
-    id: string,
-    data: Prisma.OpportunityUpdateInput
-  ) {
-    return prisma.opportunity.update({
-      where: {
-        id,
-      },
-      data,
-    });
-  }
-
-  async delete(id: string) {
-    return prisma.opportunity.delete({
-      where: {
-        id,
-      },
-    });
-  }
-  async getStats() {
-  const [
-    total,
-    open,
-    draft,
-    expired,
-  ] = await Promise.all([
-    prisma.opportunity.count(),
-
-    prisma.opportunity.count({
+  async getLatest(limit = 12) {
+    return prisma.opportunity.findMany({
       where: {
         status: "OPEN",
       },
-    }),
-
-    prisma.opportunity.count({
-      where: {
-        status: "DRAFT",
+      orderBy: {
+        createdAt: "desc",
       },
-    }),
+      take: limit,
+    });
+  }
 
-    prisma.opportunity.count({
+  async getBySlug(slug: string) {
+    return prisma.opportunity.findUnique({
       where: {
-        status: "EXPIRED",
+        slug,
       },
-    }),
-  ]);
-
-  return {
-    total,
-    open,
-    draft,
-    expired,
-  };
+    });
+  }
+  async getAll() {
+  return prisma.opportunity.findMany({
+    where: {
+      status: "OPEN",
+    },
+    orderBy: [
+      {
+        featured: "desc",
+      },
+      {
+        deadline: "asc",
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
+  });
 }
 }
 

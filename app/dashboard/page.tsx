@@ -22,7 +22,7 @@ import {
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 
-import studentOpportunityService from "@/services/student-opportunity/student-opportunity.service";
+import opportunityService from "@/services/opportunity/opportunity.service";
 
 export const metadata = {
   title: "Dashboard · SAATHI",
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
     select: { role: true },
   });
 
-  if (user?.role === "ADMIN") {
+  if ((user?.role as any) === "ADMIN") {
     redirect("/admin");
   }
 
@@ -58,10 +58,10 @@ export default async function DashboardPage() {
     redirect("/onboarding");
   }
 
-  const opportunities =
-    await studentOpportunityService.getRecommended(
-      session.user.id
-    );
+ const opportunities =
+await opportunityService.getDashboardOpportunities(
+    session.user.id
+);
 
   const userName = session.user.name || "Ananya";
   const firstName = userName.split(" ")[0];

@@ -1,15 +1,19 @@
-import { Metadata } from "next";
+import { AppShell } from "@/components/AppShell";
+import OpportunityGrid from "@/components/opportunity/OpportunityGrid";
+import opportunityService from "@/services/opportunity/opportunity.service";
 
-export const metadata: Metadata = {
-  title: "Opportunities · SAATHI",
-  description:
-    "Scholarships, schemes, internships, hackathons and certifications — matched to you.",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+export default async function OpportunitiesPage() {
+  const opportunities =
+    await opportunityService.getAll();
 
-export default function Page() {
-  return null;
+  return (
+    <AppShell
+      title="Discover Opportunities"
+      subtitle="Scholarships, internships, hackathons and more."
+    >
+      <OpportunityGrid
+        opportunities={opportunities}
+      />
+    </AppShell>
+  );
 }

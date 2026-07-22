@@ -26,11 +26,11 @@ import {
   Users,
   BarChart3,
   Settings,
+  Bookmark,
   type LucideIcon,
 } from "lucide-react";
 
 import Logo from "@/components/Logo";
-import { adminNavigation } from "@/config/admin-navigation";
 import { studentNavigation, type NavItem } from "@/config/student-navigation";
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -49,6 +49,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   LifeBuoy,
   Briefcase,
   Users,
+  Bookmark,
   BarChart3,
   Settings,
 };
@@ -169,20 +170,15 @@ export function AppShell({
   const userImage = session?.user?.image || null;
   const avatarLetter = userName.charAt(0).toUpperCase();
 
-  const isAdmin = session?.user?.role === "ADMIN";
-  const activeNavigation =
-    navigation !== studentNavigation
-      ? navigation
-      : isAdmin
-      ? adminNavigation
-      : studentNavigation;
-
+  const activeNavigation = navigation;
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[260px] border-r border-border bg-surface lg:block">
-        <SidebarInner navigation={activeNavigation} />
+        <SidebarInner
+         navigation={activeNavigation} 
+         onNavigate={() => setOpen(false)}/>
       </aside>
 
       {/* Mobile Drawer */}

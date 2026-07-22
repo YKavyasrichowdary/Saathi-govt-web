@@ -27,6 +27,12 @@ export const studentNavigation: NavItem[] = [
     group: "Discover",
   },
   {
+    href: "/saved-opportunities",
+    label: "Saved Opportunities",
+    icon: "Bookmark",
+    group: "Discover",
+  },
+  {
     href: "/companion",
     label: "AI Companion",
     icon: "MessageCircleHeart",

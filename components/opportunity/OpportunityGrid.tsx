@@ -1,9 +1,9 @@
 import { Opportunity } from "@prisma/client";
 
-import OpportunityCard from "./OpportunityCard";
+import OpportunityCard, { OpportunityWithBookmarks } from "./OpportunityCard";
 
 interface Props {
-  opportunities: Opportunity[];
+  opportunities: (Opportunity | OpportunityWithBookmarks)[];
 }
 
 export default function OpportunityGrid({

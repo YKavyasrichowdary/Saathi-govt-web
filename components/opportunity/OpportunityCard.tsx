@@ -6,57 +6,56 @@ import {
   CalendarDays,
   Building2,
   MapPin,
-  Bookmark,
   BadgeCheck,
   Star,
 } from "lucide-react";
 
 import { Opportunity } from "@prisma/client";
+import SaveButton from "./SaveButton";
+
+export type OpportunityWithBookmarks = Opportunity & {
+  bookmarks?: {
+    id: string;
+  }[];
+};
 
 interface Props {
-  opportunity: Opportunity;
+  opportunity: OpportunityWithBookmarks;
 }
 
 export default function OpportunityCard({
   opportunity,
 }: Props) {
   return (
-    <Link
-      href={`/opportunities/${opportunity.slug}`}
-      className="group block"
-    >
-      <div className="surface-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div className="group relative surface-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+      {/* Save Button outside Link */}
+      <div className="absolute top-4 right-4 z-10">
+        <SaveButton
+          opportunityId={opportunity.id}
+          initialSaved={Boolean(
+            opportunity.bookmarks && opportunity.bookmarks.length > 0
+          )}
+        />
+      </div>
 
+      <Link
+        href={`/opportunities/${opportunity.slug}`}
+        className="block"
+      >
         {/* Header */}
+        <div className="pr-10">
+          <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+            {opportunity.title}
+          </h3>
 
-        <div className="flex items-start justify-between">
-
-          <div>
-
-            <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
-              {opportunity.title}
-            </h3>
-
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Building2 className="h-4 w-4" />
-              {opportunity.organization}
-            </div>
-
+          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <Building2 className="h-4 w-4" />
+            {opportunity.organization}
           </div>
-
-          <button
-            type="button"
-            className="rounded-full p-2 hover:bg-muted"
-          >
-            <Bookmark className="h-5 w-5" />
-          </button>
-
         </div>
 
         {/* Badges */}
-
         <div className="mt-5 flex flex-wrap gap-2">
-
           <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             {opportunity.type}
           </span>
@@ -78,38 +77,25 @@ export default function OpportunityCard({
               Verified
             </span>
           )}
-
         </div>
 
         {/* Details */}
-
         <div className="mt-6 space-y-3 text-sm">
-
           {opportunity.location && (
             <div className="flex items-center gap-2 text-muted-foreground">
-
               <MapPin className="h-4 w-4" />
-
               {opportunity.location}
-
             </div>
           )}
 
           {opportunity.deadline && (
             <div className="flex items-center gap-2 text-muted-foreground">
-
               <CalendarDays className="h-4 w-4" />
-
-              {new Date(
-                opportunity.deadline
-              ).toLocaleDateString("en-IN")}
-
+              {new Date(opportunity.deadline).toLocaleDateString("en-IN")}
             </div>
           )}
-
         </div>
-
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

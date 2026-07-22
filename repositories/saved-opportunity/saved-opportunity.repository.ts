@@ -11,12 +11,10 @@ class SavedOpportunityRepository {
   }
 
   async unsave(userId: string, opportunityId: string) {
-    return prisma.savedOpportunity.delete({
+    return prisma.savedOpportunity.deleteMany({
       where: {
-        userId_opportunityId: {
-          userId,
-          opportunityId,
-        },
+        userId,
+        opportunityId,
       },
     });
   }

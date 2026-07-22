@@ -13,7 +13,6 @@ datasource db {
 
 enum UserRole {
   STUDENT
-  ADMIN
 }
 
 enum OTPPurpose {
@@ -338,9 +337,13 @@ model Opportunity {
 
   registrationLink String
 
+  officialId String?
+
   imageUrl String?
 
   bannerUrl String?
+
+  lastSyncedAt DateTime?
 
   amount String?
 
