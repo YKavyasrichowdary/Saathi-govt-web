@@ -99,19 +99,11 @@ export const authOptions: NextAuthOptions = {
               role: dbUser.role ?? "STUDENT",
             };
           } else {
-            session.user = {
-              ...session.user,
-              id: userId,
-              role: (token.role as string) || "STUDENT",
-            };
+            delete (session as any).user;
           }
         } catch (error) {
           console.error("Error fetching user in session callback:", error);
-          session.user = {
-            ...session.user,
-            id: userId,
-            role: (token.role as string) || "STUDENT",
-          };
+          delete (session as any).user;
         }
       }
       return session;
