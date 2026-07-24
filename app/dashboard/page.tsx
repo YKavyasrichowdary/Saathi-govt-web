@@ -9,7 +9,8 @@ import {
   StatCard,
   SectionTitle,
 } from "@/components/PageBits";
-import OpportunityGrid from "@/components/opportunity/OpportunityGrid";
+import recommendationService from "@/services/recommendation/recommendation.service";
+import RecommendationGrid from "@/components/recommendation/RecommendationGrid";
 
 import {
   ArrowRight,
@@ -22,8 +23,6 @@ import {
 
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-
-import opportunityService from "@/services/opportunity/opportunity.service";
 
 export const metadata = {
   title: "Dashboard · SAATHI",
@@ -63,10 +62,10 @@ export default async function DashboardPage() {
   session.user.id
 );
 
- const opportunities =
-await opportunityService.getDashboardOpportunities(
-    session.user.id
-);
+  const recommendations =
+    await recommendationService.getRecommendations(
+      session.user.id
+    );
 
   const userName = session.user.name || "Ananya";
   const firstName = userName.split(" ")[0];
@@ -225,22 +224,19 @@ await opportunityService.getDashboardOpportunities(
             </ul>
           </Card>
 
-          <div>
-            <SectionTitle
-              eyebrow="For you"
-              title="Opportunities that fit you this week"
-              action={
-                <Link
-                  href="/opportunities"
-                  className="text-xs font-semibold text-primary"
-                >
-                  See all
-                </Link>
-              }
+          <section className="mt-10">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold">
+                Recommended For You
+              </h2>
+              <p className="text-muted-foreground">
+                Personalized opportunities based on your profile.
+              </p>
+            </div>
+            <RecommendationGrid
+              recommendations={recommendations.slice(0,4)}
             />
-
-            <OpportunityGrid opportunities={opportunities} />
-          </div>
+          </section>
         </div>
 
         {/* Right */}
