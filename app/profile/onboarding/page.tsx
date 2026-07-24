@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+
 import { FormProvider, useForm } from "react-hook-form";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import {
+  onboardingSchema,
+  OnboardingForm,
+  OnboardingInput,
+} from "@/schemas/onboarding.schema";
 
 import OnboardingLayout from "@/components/onboarding/layout/OnboardingLayout";
 
@@ -23,20 +33,47 @@ const steps = [
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
+  const router = useRouter();
 
-  const methods = useForm({
-    defaultValues: {
-      phone: "",
-      city: "",
-      state: "",
-      country: "",
-      bio: "",
-    },
+  const methods = useForm<OnboardingInput, any, OnboardingForm>({
+    resolver: zodResolver(onboardingSchema),
+
+    mode: "onChange",
+
+defaultValues: {
+  phone: "",
+  gender: undefined,
+  dateOfBirth: "",
+  city: "",
+  state: "",
+  country: "",
+  bio: "",
+
+  educationLevel: undefined,
+  institutionName: "",
+  university: "",
+  course: "",
+  specialization: "",
+  currentSemester: "",
+  graduationYear: new Date().getFullYear(),
+  cgpa: undefined,
+
+  skills: [],
+
+  interests: [],
+
+  careerGoals: [],
+},
   });
 
   const CurrentStep = steps[currentStep];
 
-  function nextStep() {
+  async function nextStep() {
+    if (currentStep === 0) {
+      const valid = await methods.trigger();
+      if (!valid) return;
+    }
+
     if (currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1);
     }
@@ -48,15 +85,40 @@ export default function OnboardingPage() {
     }
   }
 
+  async function finishOnboarding() {
+    const valid = await methods.trigger();
+    if (!valid) return;
+
+    const response = await fetch("/api/profile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(methods.getValues()),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message);
+    }
+
+    router.push("/dashboard");
+  }
+
   return (
     <FormProvider {...methods}>
       <OnboardingLayout
         currentStep={currentStep}
         totalSteps={steps.length}
-        onNext={nextStep}
+        onNext={
+          currentStep === steps.length - 1
+            ? finishOnboarding
+            : nextStep
+        }
         onBack={previousStep}
-        isLastStep={currentStep === steps.length - 1}
         isFirstStep={currentStep === 0}
+        isLastStep={currentStep === steps.length - 1}
       >
         <AnimatePresence mode="wait">
           <motion.div

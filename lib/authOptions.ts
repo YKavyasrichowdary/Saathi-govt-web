@@ -11,8 +11,8 @@ export const authOptions: NextAuthOptions = {
 
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
@@ -21,8 +21,8 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      clientId: process.env.GITHUB_CLIENT_ID || "",
+      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
@@ -53,6 +53,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             email: user.email,
             image: user.image,
+            role: user.role,
           };
         } catch (error) {
           console.error("Authorize error:", error);
@@ -71,49 +72,40 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // First login
       if (user) {
         token.id = user.id;
+        token.role = (user as any).role;
       }
-
       return token;
     },
 
     async session({ session, token }) {
-      if (token?.id) {
+      const userId = (token?.id || token?.sub) as string;
+
+      if (session && userId) {
         try {
           const dbUser = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { id: true, name: true, email: true, image: true },
+            where: { id: userId },
+            select: { id: true, name: true, email: true, image: true, role: true },
           });
+
           if (dbUser) {
             session.user = {
               ...session.user,
               id: dbUser.id,
-              name: dbUser.name,
-              email: dbUser.email,
-              image: dbUser.image,
+              name: dbUser.name ?? session.user?.name ?? "",
+              email: dbUser.email ?? session.user?.email ?? "",
+              image: dbUser.image ?? session.user?.image ?? null,
+              role: dbUser.role ?? "STUDENT",
             };
           } else {
-            session.user = {
-              ...session.user,
-              id: token.id as string,
-            };
+            delete (session as any).user;
           }
         } catch (error) {
           console.error("Error fetching user in session callback:", error);
-          session.user = {
-            ...session.user,
-            id: token.id as string,
-          };
+          delete (session as any).user;
         }
-      } else {
-        session.user = {
-          ...session.user,
-          id: (token?.id || "") as string,
-        };
       }
-
       return session;
     },
   },
@@ -122,5 +114,5 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "kavya_secret",
 };

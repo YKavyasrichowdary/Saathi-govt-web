@@ -27,7 +27,7 @@ export default function Navigation({
       <Button
         onClick={onNext}
       >
-        {isLastStep ? "Finish" : "Next"}
+        {isLastStep ? "Complete Profile" : "Next"}
       </Button>
 
     </div>

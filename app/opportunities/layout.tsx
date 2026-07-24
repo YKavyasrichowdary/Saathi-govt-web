@@ -1,17 +1,13 @@
 "use client";
 
-import type { Metadata } from "next";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, type ReactNode } from "react";
 
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
-
-// NOTE: Because this is a Client Component (uses usePathname),
-// move the metadata below into app/opportunities/page.tsx
-// or a separate metadata.ts if needed.
 
 const TABS = [
   {
@@ -34,6 +30,10 @@ const TABS = [
     href: "/opportunities/certifications",
     label: "Certifications",
   },
+  {
+    href: "/opportunities/saved",
+    label: "Saved Opportunities",
+  },
 ];
 
 export default function OpportunitiesLayout({
@@ -42,6 +42,18 @@ export default function OpportunitiesLayout({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session?.user?.role === "ADMIN") {
+      router.replace("/admin/opportunities");
+    }
+  }, [session, router]);
+
+  if (session?.user?.role === "ADMIN") {
+    return null;
+  }
 
   return (
     <AppShell

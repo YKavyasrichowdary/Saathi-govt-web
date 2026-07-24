@@ -1,125 +1,95 @@
-import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
-import { Card, SectionTitle } from "@/components/PageBits";
+import { getSession } from "@/lib/auth";
+import applicationService from "@/services/application/application.service";
 
-export const metadata: Metadata = {
-  title: "Applications · SAATHI",
-  description:
-    "Track every application from draft to result — no more missed deadlines.",
-  robots: {
-    index: false,
-    follow: false,
-  },
+const STATUS_STYLES: Record<string, string> = {
+  SUBMITTED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  UNDER_REVIEW: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  ACCEPTED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  REJECTED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  WITHDRAWN: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 };
 
-const STAGES = [
-  {
-    name: "Drafting",
-    color: "bg-muted",
-    items: [
-      {
-        title: "INSPIRE Scholarship",
-        note: "3 sections left",
-        due: "Due 15 Dec",
-      },
-    ],
-  },
-  {
-    name: "Ready to Submit",
-    color: "bg-sky-soft",
-    items: [
-      {
-        title: "NMMS 2026",
-        note: "68% · one doc pending",
-        due: "Due 21 Nov",
-      },
-      {
-        title: "SIH 2026",
-        note: "Team registered",
-        due: "Due 3 Dec",
-      },
-    ],
-  },
-  {
-    name: "Submitted",
-    color: "bg-mint-soft",
-    items: [
-      {
-        title: "KVPY",
-        note: "Confirmation received",
-        due: "Result 20 Dec",
-      },
-      {
-        title: "Post-Matric SC Scholarship",
-        note: "Awaiting institute verify",
-        due: "Result Jan",
-      },
-    ],
-  },
-  {
-    name: "Result / Outcome",
-    color: "bg-gold-soft",
-    items: [
-      {
-        title: "Tata Trusts (2024)",
-        note: "Selected · ₹1.2L awarded",
-        due: "Completed",
-      },
-    ],
-  },
-];
+export default async function ApplicationsPage() {
+  const session = await getSession();
 
-export default function ApplicationsPage() {
+  if (!session?.user?.id) {
+    redirect("/auth/signin");
+  }
+
+  const applications = await applicationService.getApplications(
+    session.user.id
+  );
+
   return (
     <AppShell
-      title="Applications"
-      subtitle="6 in progress · 2 need you today"
+      title="My Applications"
+      subtitle={`${applications.length} tracked applications`}
     >
-      <SectionTitle
-        eyebrow="Kanban"
-        title="Your applications"
-      />
+      {applications.length === 0 ? (
+        <div className="surface-card flex flex-col items-center rounded-2xl p-12 text-center">
+          <h2 className="text-xl font-semibold">
+            No applications yet
+          </h2>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {STAGES.map((stage) => (
-          <div
-            key={stage.name}
-            className="rounded-2xl border border-border bg-muted/40 p-3"
+          <p className="mt-2 text-muted-foreground">
+            Apply to scholarships, internships and hackathons to track them here.
+          </p>
+
+          <Link
+            href="/opportunities"
+            className="btn-primary mt-6"
           >
-            <div className="mb-3 flex items-center justify-between px-2">
-              <div className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">
-                {stage.name}
+            Explore Opportunities
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {applications.map((application) => (
+            <div
+              key={application.id}
+              className="surface-card p-6 rounded-2xl"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="font-semibold text-lg">
+                    {application.opportunity.title}
+                  </h2>
+
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {application.opportunity.organization}
+                  </p>
+                </div>
+
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium shrink-0 ${
+                    STATUS_STYLES[application.status] || "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {application.status.replaceAll("_", " ")}
+                </span>
               </div>
 
-              <span className="rounded-full bg-surface px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                {stage.items.length}
-              </span>
-            </div>
+              <div className="mt-6 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  Applied on{" "}
+                  {new Date(application.appliedAt).toLocaleDateString("en-IN")}
+                </span>
 
-            <div className="space-y-2">
-              {stage.items.map((item) => (
-                <Card
-                  key={item.title}
-                  className={`p-3 ${stage.color}/50`}
+                <Link
+                  href={`/opportunities/${application.opportunity.slug}`}
+                  className="text-sm font-semibold text-primary hover:underline"
                 >
-                  <div className="text-sm font-semibold text-foreground">
-                    {item.title}
-                  </div>
-
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {item.note}
-                  </div>
-
-                  <div className="mt-2 text-[11px] font-semibold text-foreground/80">
-                    {item.due}
-                  </div>
-                </Card>
-              ))}
+                  View Opportunity →
+                </Link>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </AppShell>
   );
 }

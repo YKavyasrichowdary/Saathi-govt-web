@@ -1,11 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+
+import { authOptions } from "@/lib/auth";
 
 import profileService from "@/services/profile/profile.service";
-import { getSession } from "@/lib/auth";
 
-export async function GET() {
+export async function POST(request: Request) {
   try {
-    const session = await getSession();
+
+    const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -19,122 +22,29 @@ export async function GET() {
       );
     }
 
-    const profile = await profileService.getProfile(
-      session.user.id
+    const body = await request.json();
+
+    await profileService.completeProfile(
+      session.user.id,
+      body
     );
 
     return NextResponse.json({
       success: true,
-      data: profile,
+      message: "Profile completed successfully",
     });
+
   } catch (error) {
+
+    console.error(error);
+
     return NextResponse.json(
       {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong.",
+        message: "Something went wrong",
       },
       {
         status: 500,
-      }
-    );
-  }
-}
-
-export async function POST(
-  request: NextRequest
-) {
-  try {
-    const session = await getSession();
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
-      );
-    }
-
-    const body = await request.json();
-
-    const profile =
-      await profileService.createProfile(
-        session.user.id,
-        body
-      );
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: profile,
-      },
-      {
-        status: 201,
-      }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong.",
-      },
-      {
-        status: 400,
-      }
-    );
-  }
-}
-
-export async function PATCH(
-  request: NextRequest
-) {
-  try {
-    const session = await getSession();
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
-      );
-    }
-
-    const body = await request.json();
-
-    const profile =
-      await profileService.updateProfile(
-        session.user.id,
-        body
-      );
-
-    return NextResponse.json({
-      success: true,
-      data: profile,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong.",
-      },
-      {
-        status: 400,
       }
     );
   }

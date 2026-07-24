@@ -91,62 +91,7 @@ export function StatCard({
   );
 }
 
-interface OpportunityCardProps {
-  tag: string;
-  title: string;
-  org: string;
-  deadline: string;
-  amount?: string;
-  href?: string;
-}
-
-export function OpportunityCard({
-  tag,
-  title,
-  org,
-  deadline,
-  amount,
-  href = "/applications",
-}: OpportunityCardProps) {
-  return (
-    <div className="group surface-card flex flex-col gap-3 p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-20px_oklch(0.15_0.04_260/0.15)]">
-      <div className="flex items-center justify-between">
-        <span className="chip">
-          {tag}
-        </span>
-
-        <span className="text-xs font-medium text-muted-foreground">
-          Closes {deadline}
-        </span>
-      </div>
-
-      <div>
-        <h3 className="text-base font-semibold leading-snug text-foreground">
-          {title}
-        </h3>
-
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {org}
-        </p>
-      </div>
-
-      <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
-        <div className="text-sm font-semibold text-foreground">
-          {amount ?? "Eligibility match"}
-        </div>
-
-        <Link
-          href={href}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition-all hover:gap-1.5"
-        >
-          Explore
-
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-    </div>
-  );
-}
+export { default as OpportunityCard } from "@/components/opportunity/OpportunityCard";
 
 interface EmptyNudgeProps {
   title: string;

@@ -1,13 +1,15 @@
 import Link from "next/link";
 
 import { AppShell } from "@/components/AppShell";
+import { studentNavigation } from "@/config/student-navigation";
 import { getSession } from "@/lib/auth";
+import dashboardService from "@/services/dashboard/dashboard.service";
 import {
   Card,
   StatCard,
   SectionTitle,
-  OpportunityCard,
 } from "@/components/PageBits";
+import OpportunityGrid from "@/components/opportunity/OpportunityGrid";
 
 import {
   ArrowRight,
@@ -20,6 +22,8 @@ import {
 
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+
+import opportunityService from "@/services/opportunity/opportunity.service";
 
 export const metadata = {
   title: "Dashboard · SAATHI",
@@ -38,6 +42,15 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  if ((user?.role as any) === "ADMIN") {
+    redirect("/admin");
+  }
+
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
   });
@@ -45,6 +58,15 @@ export default async function DashboardPage() {
   if (!profile) {
     redirect("/onboarding");
   }
+
+  const stats = await dashboardService.getStats(
+  session.user.id
+);
+
+ const opportunities =
+await opportunityService.getDashboardOpportunities(
+    session.user.id
+);
 
   const userName = session.user.name || "Ananya";
   const firstName = userName.split(" ")[0];
@@ -57,6 +79,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell
+      navigation={studentNavigation}
       title={`Good morning, ${firstName}.`}
       subtitle={`${today} · You have 3 gentle tasks today.`}
       actions={
@@ -108,33 +131,33 @@ export default async function DashboardPage() {
       {/* Stats */}
 
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard
-          label="Day streak"
-          value="14"
-          hint="Longest yet."
-          tone="accent"
-        />
+       <StatCard
+  label="Saved"
+  value={stats.savedCount.toString()}
+  hint="Saved opportunities."
+  tone="accent"
+/>
 
         <StatCard
-          label="Applications"
-          value="6"
-          hint="2 awaiting you."
-          tone="primary"
-        />
+  label="Applications"
+  value={stats.applicationCount.toString()}
+  hint="Applications submitted."
+  tone="primary"
+/>
 
         <StatCard
-          label="Scholarships"
-          value="₹1.2L"
-          hint="Potential this quarter."
-          tone="secondary"
-        />
+  label="Open"
+  value={stats.opportunityCount.toString()}
+  hint="Available opportunities."
+  tone="secondary"
+/>
 
-        <StatCard
-          label="Mock score"
-          value="72%"
-          hint="+8% from last week."
-          tone="primary"
-        />
+       <StatCard
+  label="Featured"
+  value={stats.featuredCount.toString()}
+  hint="Featured opportunities."
+  tone="primary"
+/>
       </div>
 
       {/* Main Content */}
@@ -216,23 +239,7 @@ export default async function DashboardPage() {
               }
             />
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <OpportunityCard
-                tag="Scholarship"
-                title="NMMS 2026 — Class 8 to 12"
-                org="Ministry of Education"
-                deadline="21 Nov"
-                amount="₹12,000 / year"
-              />
-
-              <OpportunityCard
-                tag="Hackathon"
-                title="Smart India Hackathon"
-                org="AICTE · SIH"
-                deadline="3 Dec"
-                amount="₹1L prize"
-              />
-            </div>
+            <OpportunityGrid opportunities={opportunities} />
           </div>
         </div>
 

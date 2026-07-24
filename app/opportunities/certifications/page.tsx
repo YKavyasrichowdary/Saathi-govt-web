@@ -1,52 +1,23 @@
-import { OpportunityCard } from "@/components/PageBits";
+import OpportunityCard from "@/components/opportunity/OpportunityCard";
+import studentOpportunityService from "@/services/student-opportunity/student-opportunity.service";
 
-export default function CertificationsPage() {
-  const certifications = [
-    {
-      title: "NPTEL — Data Structures & Algorithms",
-      org: "IIT Madras",
-      deadline: "Enrol by 30 Nov",
-      amount: "Free · certificate ₹1,000",
-    },
-    {
-      title: "Google Data Analytics Certificate",
-      org: "Coursera · Google",
-      deadline: "Self-paced",
-      amount: "₹3,000 / month",
-    },
-    {
-      title: "AWS Cloud Practitioner",
-      org: "Amazon Web Services",
-      deadline: "Self-paced",
-      amount: "$100 exam",
-    },
-    {
-      title: "IBM SkillsBuild — Cybersecurity",
-      org: "IBM",
-      deadline: "Rolling",
-      amount: "Free",
-    },
-    {
-      title: "Meta Front-End Developer",
-      org: "Coursera · Meta",
-      deadline: "Self-paced",
-      amount: "Free with aid",
-    },
-    {
-      title: "Microsoft Learn Student Ambassador",
-      org: "Microsoft",
-      deadline: "Rolling",
-      amount: "Free · global network",
-    },
-  ];
+export default async function CertificationsPage() {
+  const opportunities = await studentOpportunityService.getByType("COURSE");
+
+  if (!opportunities.length) {
+    return (
+      <div className="surface-card p-12 text-center text-muted-foreground rounded-2xl">
+        No open certifications/courses available right now. Check back soon!
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {certifications.map((certification) => (
+      {opportunities.map((opp) => (
         <OpportunityCard
-          key={certification.title}
-          tag="Certification"
-          {...certification}
+          key={opp.id}
+          opportunity={opp}
         />
       ))}
     </div>

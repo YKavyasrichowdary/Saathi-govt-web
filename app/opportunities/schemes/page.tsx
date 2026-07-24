@@ -1,52 +1,23 @@
-import { OpportunityCard } from "@/components/PageBits";
+import OpportunityCard from "@/components/opportunity/OpportunityCard";
+import studentOpportunityService from "@/services/student-opportunity/student-opportunity.service";
 
-export default function SchemesPage() {
-  const schemes = [
-    {
-      title: "PM Vidyalaxmi — Education Loan up to ₹10L",
-      org: "Government of India",
-      deadline: "Rolling",
-      amount: "Interest subsidy",
-    },
-    {
-      title: "Pradhan Mantri Kaushal Vikas Yojana",
-      org: "Ministry of Skill Development",
-      deadline: "Rolling",
-      amount: "Free skilling",
-    },
-    {
-      title: "Beti Bachao Beti Padhao — Girl Child Support",
-      org: "Ministry of Women & Child",
-      deadline: "Rolling",
-      amount: "State-linked benefits",
-    },
-    {
-      title: "AICTE Pragati Scholarship for Girls",
-      org: "AICTE",
-      deadline: "30 Nov",
-      amount: "₹50,000 / year",
-    },
-    {
-      title: "Central Sector Interest Subsidy Scheme",
-      org: "Ministry of Education",
-      deadline: "Rolling",
-      amount: "100% interest",
-    },
-    {
-      title: "State Nivas — Domicile Housing for Students",
-      org: "State Government",
-      deadline: "Ongoing",
-      amount: "Subsidised stay",
-    },
-  ];
+export default async function SchemesPage() {
+  const opportunities = await studentOpportunityService.getByType();
+
+  if (!opportunities.length) {
+    return (
+      <div className="surface-card p-12 text-center text-muted-foreground rounded-2xl">
+        No government schemes available right now.
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {schemes.map((scheme) => (
+      {opportunities.map((opp) => (
         <OpportunityCard
-          key={scheme.title}
-          tag="Govt Scheme"
-          {...scheme}
+          key={opp.id}
+          opportunity={opp}
         />
       ))}
     </div>

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         data: {
           userId: session.user.id,
           bio: bioSummary || "Student",
-          profileCompleted: 100,
+          isProfileCompleted: true,
         },
       });
     } else {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         where: { userId: session.user.id },
         data: {
           bio: bioSummary || profile.bio || "Student",
-          profileCompleted: 100,
+          isProfileCompleted: true,
         },
       });
     }

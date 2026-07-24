@@ -93,3 +93,12 @@ ALTER TABLE "Interest" ADD CONSTRAINT "Interest_profileId_fkey" FOREIGN KEY ("pr
 
 -- AddForeignKey
 ALTER TABLE "CareerGoal" ADD CONSTRAINT "CareerGoal_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CareerGoal_profileId_title_key" ON "CareerGoal"("profileId", "title");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Interest_profileId_name_key" ON "Interest"("profileId", "name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Skill_profileId_name_key" ON "Skill"("profileId", "name");

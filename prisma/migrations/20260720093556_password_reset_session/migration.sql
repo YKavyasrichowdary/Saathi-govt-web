@@ -29,14 +29,5 @@ CREATE UNIQUE INDEX "PasswordResetSession_token_key" ON "PasswordResetSession"("
 -- CreateIndex
 CREATE INDEX "PasswordResetSession_token_idx" ON "PasswordResetSession"("token");
 
--- CreateIndex
-CREATE UNIQUE INDEX "CareerGoal_profileId_title_key" ON "CareerGoal"("profileId", "title");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Interest_profileId_name_key" ON "Interest"("profileId", "name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Skill_profileId_name_key" ON "Skill"("profileId", "name");
-
 -- AddForeignKey
 ALTER TABLE "PasswordResetSession" ADD CONSTRAINT "PasswordResetSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

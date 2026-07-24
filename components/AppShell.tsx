@@ -6,8 +6,37 @@ import { useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 
 import {
+  Bell,
+  Menu,
+  X,
+  Search,
+  Sparkles,
   LayoutDashboard,
   Route as RouteIcon,
+  Compass,
+  MessageCircleHeart,
+  BookOpen,
+  ClipboardList,
+  FileCheck2,
+  Trophy,
+  Flame,
+  UserCog,
+  LifeBuoy,
+  Briefcase,
+  Users,
+  BarChart3,
+  Settings,
+  Bookmark,
+  type LucideIcon,
+} from "lucide-react";
+
+import Logo from "@/components/Logo";
+import { studentNavigation, type NavItem } from "@/config/student-navigation";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Route: RouteIcon,
+  RouteIcon,
   Compass,
   MessageCircleHeart,
   BookOpen,
@@ -18,104 +47,23 @@ import {
   Bell,
   UserCog,
   LifeBuoy,
-  Menu,
-  X,
-  Search,
-  Sparkles,
-} from "lucide-react";
-
-import Logo from "@/components/Logo";
-
-type NavItem = {
-  href: string;
-  label: string;
-  icon: ReactNode;
-  group: string;
+  Briefcase,
+  Users,
+  Bookmark,
+  BarChart3,
+  Settings,
 };
 
-const NAV: NavItem[] = [
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: <LayoutDashboard className="h-4 w-4" />,
-    group: "Home",
-  },
-  {
-    href: "/journey",
-    label: "My Journey",
-    icon: <RouteIcon className="h-4 w-4" />,
-    group: "Home",
-  },
-  {
-    href: "/opportunities",
-    label: "Opportunities",
-    icon: <Compass className="h-4 w-4" />,
-    group: "Discover",
-  },
-  {
-    href: "/companion",
-    label: "AI Companion",
-    icon: <MessageCircleHeart className="h-4 w-4" />,
-    group: "Work",
-  },
-  {
-    href: "/preparation",
-    label: "Preparation",
-    icon: <BookOpen className="h-4 w-4" />,
-    group: "Work",
-  },
-  {
-    href: "/mock-tests",
-    label: "Mock Tests",
-    icon: <Trophy className="h-4 w-4" />,
-    group: "Work",
-  },
-  {
-    href: "/documents",
-    label: "Documents",
-    icon: <FileCheck2 className="h-4 w-4" />,
-    group: "Track",
-  },
-  {
-    href: "/applications",
-    label: "Applications",
-    icon: <ClipboardList className="h-4 w-4" />,
-    group: "Track",
-  },
-  {
-    href: "/progress",
-    label: "Progress",
-    icon: <Flame className="h-4 w-4" />,
-    group: "Track",
-  },
-  {
-    href: "/notifications",
-    label: "Notifications",
-    icon: <Bell className="h-4 w-4" />,
-    group: "You",
-  },
-  {
-    href: "/profile",
-    label: "Profile & Settings",
-    icon: <UserCog className="h-4 w-4" />,
-    group: "You",
-  },
-  {
-    href: "/help",
-    label: "Help Center",
-    icon: <LifeBuoy className="h-4 w-4" />,
-    group: "You",
-  },
-];
-
 function SidebarInner({
+  navigation = studentNavigation,
   onNavigate,
 }: {
+  navigation?: NavItem[];
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
-  const groups = [...new Set(NAV.map((item) => item.group))];
+  const groups = [...new Set(navigation.map((item) => item.group))];
 
   return (
     <div className="flex h-full flex-col">
@@ -152,50 +100,46 @@ function SidebarInner({
             </div>
 
             <ul className="space-y-0.5">
-              {NAV.filter(
-                (item) => item.group === group
-              ).map((item) => {
-                const active =
-                  pathname === item.href ||
-                  pathname.startsWith(
-                    item.href + "/"
+              {navigation
+                .filter((item) => item.group === group)
+                .map((item) => {
+                  const active = pathname === item.href;
+                  const Icon =
+                    typeof item.icon === "string"
+                      ? ICON_MAP[item.icon] || Compass
+                      : item.icon;
+
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={onNavigate}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+
+                        <span>{item.label}</span>
+                      </Link>
+                    </li>
                   );
-
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={onNavigate}
-                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
-                        active
-                          ? "bg-primary/10 font-semibold text-primary"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      {item.icon}
-
-                      <span>{item.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
+                })}
             </ul>
           </div>
         ))}
       </nav>
 
-      {/* Streak Card */}
+      {/* Footer hint */}
 
       <div className="border-t border-border p-3">
-        <div className="rounded-xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/20 p-3">
-          <div className="flex items-center gap-2 text-xs font-semibold">
-            <Sparkles className="h-3.5 w-3.5 text-accent" />
+        <div className="rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 p-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+            <Sparkles className="h-3.5 w-3.5" />
 
-            Your streak
-          </div>
-
-          <div className="mt-1 text-2xl font-bold">
-            14 days
+            <span>SAATHI Ambient Mode</span>
           </div>
 
           <div className="text-[11px] text-muted-foreground">
@@ -206,12 +150,15 @@ function SidebarInner({
     </div>
   );
 }
+
 export function AppShell({
+  navigation = studentNavigation,
   title,
   subtitle,
   actions,
   children,
 }: {
+  navigation?: NavItem[];
   title?: string;
   subtitle?: string;
   actions?: ReactNode;
@@ -223,12 +170,15 @@ export function AppShell({
   const userImage = session?.user?.image || null;
   const avatarLetter = userName.charAt(0).toUpperCase();
 
+  const activeNavigation = navigation;
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[260px] border-r border-border bg-surface lg:block">
-        <SidebarInner />
+        <SidebarInner
+         navigation={activeNavigation} 
+         onNavigate={() => setOpen(false)}/>
       </aside>
 
       {/* Mobile Drawer */}
@@ -242,6 +192,7 @@ export function AppShell({
 
           <aside className="absolute inset-y-0 left-0 w-[280px] bg-surface shadow-xl">
             <SidebarInner
+              navigation={activeNavigation}
               onNavigate={() => setOpen(false)}
             />
           </aside>
