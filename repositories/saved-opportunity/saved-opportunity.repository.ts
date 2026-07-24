@@ -31,20 +31,31 @@ class SavedOpportunityRepository {
   }
 
   async getSavedByUser(userId: string) {
-    return prisma.savedOpportunity.findMany({
-      where: {
-        userId,
-      },
+  return prisma.savedOpportunity.findMany({
+    where: {
+      userId,
+    },
 
-      include: {
-        opportunity: true,
+    include: {
+      opportunity: {
+        include: {
+          bookmarks: {
+            where: {
+              userId,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
       },
+    },
 
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
 }
 
 export default new SavedOpportunityRepository();

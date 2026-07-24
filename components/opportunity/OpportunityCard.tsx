@@ -21,21 +21,24 @@ export type OpportunityWithBookmarks = Opportunity & {
 
 interface Props {
   opportunity: OpportunityWithBookmarks;
+  initialSaved?: boolean;
 }
 
 export default function OpportunityCard({
   opportunity,
+  initialSaved,
 }: Props) {
   return (
     <div className="group relative surface-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       {/* Save Button outside Link */}
       <div className="absolute top-4 right-4 z-10">
         <SaveButton
-          opportunityId={opportunity.id}
-          initialSaved={Boolean(
-            opportunity.bookmarks && opportunity.bookmarks.length > 0
-          )}
-        />
+  opportunityId={opportunity.id}
+  initialSaved={
+    initialSaved ??
+    Boolean(opportunity.bookmarks?.length)
+  }
+/>
       </div>
 
       <Link

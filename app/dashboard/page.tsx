@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { studentNavigation } from "@/config/student-navigation";
 import { getSession } from "@/lib/auth";
+import dashboardService from "@/services/dashboard/dashboard.service";
 import {
   Card,
   StatCard,
@@ -57,6 +58,10 @@ export default async function DashboardPage() {
   if (!profile) {
     redirect("/onboarding");
   }
+
+  const stats = await dashboardService.getStats(
+  session.user.id
+);
 
  const opportunities =
 await opportunityService.getDashboardOpportunities(
@@ -126,33 +131,33 @@ await opportunityService.getDashboardOpportunities(
       {/* Stats */}
 
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard
-          label="Day streak"
-          value="14"
-          hint="Longest yet."
-          tone="accent"
-        />
+       <StatCard
+  label="Saved"
+  value={stats.savedCount.toString()}
+  hint="Saved opportunities."
+  tone="accent"
+/>
 
         <StatCard
-          label="Applications"
-          value="6"
-          hint="2 awaiting you."
-          tone="primary"
-        />
+  label="Applications"
+  value={stats.applicationCount.toString()}
+  hint="Applications submitted."
+  tone="primary"
+/>
 
         <StatCard
-          label="Scholarships"
-          value="₹1.2L"
-          hint="Potential this quarter."
-          tone="secondary"
-        />
+  label="Open"
+  value={stats.opportunityCount.toString()}
+  hint="Available opportunities."
+  tone="secondary"
+/>
 
-        <StatCard
-          label="Mock score"
-          value="72%"
-          hint="+8% from last week."
-          tone="primary"
-        />
+       <StatCard
+  label="Featured"
+  value={stats.featuredCount.toString()}
+  hint="Featured opportunities."
+  tone="primary"
+/>
       </div>
 
       {/* Main Content */}

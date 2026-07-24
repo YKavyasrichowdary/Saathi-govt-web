@@ -25,15 +25,11 @@ export default function SaveButton({
   async function toggleSave() {
     if (loading) return;
 
-    const previousState = saved;
-    const nextSaved = !saved;
-
-    setSaved(nextSaved);
     setLoading(true);
 
     try {
       const res = await fetch("/api/opportunities/save", {
-        method: previousState ? "DELETE" : "POST",
+        method: saved ? "DELETE" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -48,13 +44,16 @@ export default function SaveButton({
         throw new Error(data.message || "Failed to update bookmark.");
       }
 
+      setSaved(!saved);
+
       toast.success(
-        nextSaved ? "Opportunity saved." : "Removed from saved opportunities."
+        saved
+          ? "Removed from saved opportunities."
+          : "Opportunity saved."
       );
 
       router.refresh();
     } catch (error: any) {
-      setSaved(previousState);
       toast.error(error.message || "Something went wrong.");
     } finally {
       setLoading(false);

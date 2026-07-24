@@ -16,6 +16,8 @@ export interface OpportunitySearchParams {
   educationLevel?: string;
   limit?: number;
   userId?: string;
+  featured?: boolean;
+  sort?: string;
 }
 
 class OpportunityRepository {
@@ -76,76 +78,98 @@ class OpportunityRepository {
     });
   }
 
-  async getAll() {
+  async getAll(sort?: string) {
+    let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
+
+    if (sort === "deadline") {
+      orderBy = { deadline: "asc" };
+    } else if (sort === "featured") {
+      orderBy = { featured: "desc" };
+    }
+
     return prisma.opportunity.findMany({
       where: {
         status: "OPEN",
       },
-      orderBy: [
-        {
-          featured: "desc",
-        },
-        {
-          deadline: "asc",
-        },
-        {
-          createdAt: "desc",
-        },
-      ],
+      orderBy,
     });
   }
 
-  async search(query: string) {
-  return prisma.opportunity.findMany({
-    where: {
-      status: OpportunityStatus.OPEN,
-      OR: [
-        {
-          title: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          organization: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          description: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          location: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          course: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          specialization: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-      ],
-    },
-    orderBy: [
-      { featured: "desc" },
-      { deadline: "asc" },
-      { createdAt: "desc" },
-    ],
-  });
-}
-  
+  async search(params: OpportunitySearchParams) {
+    const {
+      q,
+      type,
+      mode,
+      source,
+      educationLevel,
+      featured,
+      sort,
+    } = params;
+
+    let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
+
+    if (sort === "deadline") {
+      orderBy = { deadline: "asc" };
+    } else if (sort === "featured") {
+      orderBy = { featured: "desc" };
+    }
+
+    return prisma.opportunity.findMany({
+      where: {
+        status: "OPEN",
+
+        ...(q && {
+          OR: [
+            {
+              title: {
+                contains: q,
+                mode: "insensitive",
+              },
+            },
+            {
+              organization: {
+                contains: q,
+                mode: "insensitive",
+              },
+            },
+            {
+              description: {
+                contains: q,
+                mode: "insensitive",
+              },
+            },
+          ],
+        }),
+
+        ...(type && {
+          type: type as OpportunityType,
+        }),
+
+        ...(mode && {
+          mode: mode as OpportunityMode,
+        }),
+
+        ...(source && {
+          source: source as OpportunitySource,
+        }),
+
+        ...(educationLevel && {
+          educationLevel:
+            educationLevel as EducationLevel,
+        }),
+
+        ...(featured && {
+          featured: true,
+        }),
+      },
+
+      orderBy,
+
+      include: {
+        bookmarks: true,
+      },
+    });
+  }
 }
 
 export default new OpportunityRepository();

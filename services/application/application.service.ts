@@ -51,9 +51,7 @@ class ApplicationService {
       userId
     );
   }
-  async search(query: string) {
-    return repository.search(query);
-}
+ 
 }
 
 export default new ApplicationService();

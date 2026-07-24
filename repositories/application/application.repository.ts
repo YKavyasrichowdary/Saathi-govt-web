@@ -42,42 +42,7 @@ class ApplicationRepository {
       },
     });
   }
-  async search(query: string) {
-  return prisma.opportunity.findMany({
-    where: {
-      status: "OPEN",
-      OR: [
-        {
-          title: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          organization: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-        {
-          description: {
-            contains: query,
-            mode: "insensitive",
-          },
-        },
-      ],
-    },
-
-    orderBy: [
-      {
-        featured: "desc",
-      },
-      {
-        deadline: "asc",
-      },
-    ],
-  });
-}
+  
 }
 
 export default new ApplicationRepository();

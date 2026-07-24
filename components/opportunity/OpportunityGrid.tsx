@@ -2,11 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { Opportunity } from "@prisma/client";
-import OpportunityCard, { OpportunityWithBookmarks } from "./OpportunityCard";
+import OpportunityCard from "./OpportunityCard";
+
+export type OpportunityWithBookmarks = Opportunity & {
+  bookmarks?: {
+    id: string;
+  }[];
+};
 
 interface Props {
-  opportunities: (Opportunity | OpportunityWithBookmarks)[];
+  opportunities: OpportunityWithBookmarks[];
   search?: string;
+  forceSaved?: boolean;
 }
 
 const SUGGESTED_SEARCHES = ["scholarship", "internship", "AI", "Google"];
@@ -14,6 +21,7 @@ const SUGGESTED_SEARCHES = ["scholarship", "internship", "AI", "Google"];
 export default function OpportunityGrid({
   opportunities,
   search,
+  forceSaved,
 }: Props) {
   const router = useRouter();
 
@@ -85,6 +93,7 @@ export default function OpportunityGrid({
           <OpportunityCard
             key={opportunity.id}
             opportunity={opportunity}
+            initialSaved = {forceSaved}
           />
         ))}
       </div>

@@ -17,21 +17,16 @@ class OpportunityService {
     return opportunityRepository.getBySlug(slug);
   }
 
-  async getAll() {
-    return opportunityRepository.getAll();
+  async getAll(sort?: string) {
+    return opportunityRepository.getAll(sort);
   }
 
-async search(query: string) {
-  return prisma.opportunity.findMany({
-    where: {
-      status: OpportunityStatus.OPEN,
-      title: {
-        contains: query,
-        mode: "insensitive",
-      },
-    },
-  });
-}
+  async search(params: OpportunitySearchParams | string) {
+    if (typeof params === "string") {
+      return opportunityRepository.search({ q: params });
+    }
+    return opportunityRepository.search(params);
+  }
 }
 
 export default new OpportunityService();

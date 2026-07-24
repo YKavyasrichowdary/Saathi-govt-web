@@ -86,4 +86,5 @@ export const studentNavigation: NavItem[] = [
     icon: "LifeBuoy",
     group: "You",
   },
+  
 ];
