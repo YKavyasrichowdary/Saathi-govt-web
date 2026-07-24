@@ -21,7 +21,10 @@ export async function DELETE(request: Request) {
 
     const { id } = await request.json();
 
-    await documentService.delete(id);
+    await documentService.delete(
+    id,
+    session.user.id
+);
 
     return NextResponse.json({
       success: true,

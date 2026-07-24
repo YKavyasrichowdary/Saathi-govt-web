@@ -1,14 +1,12 @@
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
-
 import { getSession } from "@/lib/auth";
-
 import documentService from "@/services/document/document.service";
-import DocumentCard from "@/components/document/DocumentCard";
+import UploadDocumentDialog from "@/components/document/UploadDocumentDialog";
+import DocumentVaultClient from "@/components/document/DocumentVaultClient";
 
 export default async function DocumentsPage() {
-
   const session = await getSession();
 
   if (!session?.user?.id) {
@@ -22,50 +20,13 @@ export default async function DocumentsPage() {
 
   return (
     <AppShell
-      title="Documents"
-      subtitle={`${documents.length} uploaded`}
+      title="Document Vault"
+      subtitle={`${documents.length} document${documents.length === 1 ? "" : "s"} stored`}
     >
-
-      <div className="space-y-4">
-
-        {documents.length === 0 ? (
-
-          <div className="surface-card rounded-2xl p-10 text-center">
-
-            <h2 className="text-xl font-semibold">
-
-              No documents uploaded
-
-            </h2>
-
-            <p className="mt-2 text-muted-foreground">
-
-              Upload your documents to reuse them across opportunities.
-
-            </p>
-
-          </div>
-
-        ) : (
-
-       <div className="grid gap-6 lg:grid-cols-2">
-
-  {documents.map((document) => (
-
-    <DocumentCard
-      key={document.id}
-      document={document}
-    />
-
-  ))}
-
-</div>
-
-        )}
-
+      <div className="space-y-6">
+        <UploadDocumentDialog />
+        <DocumentVaultClient documents={documents} />
       </div>
-
     </AppShell>
   );
-
 }

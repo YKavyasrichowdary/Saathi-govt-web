@@ -1,5 +1,6 @@
 import repository from "@/repositories/document/document.repository";
 import { DocumentType } from "@prisma/client";
+import storageService from "@/lib/storage";
 
 class DocumentService {
 
@@ -31,9 +32,36 @@ class DocumentService {
     return repository.getByUser(userId);
   }
 
-  async delete(id: string) {
-    return repository.delete(id);
+  async findById(id: string) {
+    const document =
+      await repository.findById(id);
+
+    if (!document) {
+      throw new Error("Document not found.");
+    }
+
+    return document;
   }
+
+  async delete(id: string, userId: string) {
+
+    const document =
+        await repository.findById(id);
+
+    if (!document) {
+        throw new Error("Document not found.");
+    }
+
+    if (document.userId !== userId) {
+        throw new Error("Unauthorized.");
+    }
+
+    await storageService.deleteDocument(
+        document.fileUrl
+    );
+
+    return repository.delete(id);
+}
 
 }
 
