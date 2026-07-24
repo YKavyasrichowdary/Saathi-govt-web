@@ -1,113 +1,120 @@
-import { AppShell } from "@/components/AppShell";
+import { redirect } from "next/navigation";
 import {
   Bell,
-  CalendarClock,
-  FileCheck2,
-  Trophy,
-  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 
-export const metadata = {
-  title: "Notifications | SAATHI",
-  description: "Only the nudges that matter — never noise.",
-};
+import { AppShell } from "@/components/AppShell";
+import { getSession } from "@/lib/auth";
+import notificationService from "@/services/notification/notification.service";
 
-const GROUPS = [
-  {
-    label: "Today",
-    items: [
-      {
-        icon: <CalendarClock className="h-4 w-4" />,
-        tone: "primary",
-        title: "NMMS deadline in 9 days",
-        body: "One document left. Upload domicile certificate to keep 68% completion.",
-      },
-      {
-        icon: <Trophy className="h-4 w-4" />,
-        tone: "accent",
-        title: "You crossed a 14-day streak",
-        body: "Longest yet. Something to feel good about.",
-      },
-    ],
-  },
-  {
-    label: "This week",
-    items: [
-      {
-        icon: <Sparkles className="h-4 w-4" />,
-        tone: "secondary",
-        title: "3 new scholarships match your profile",
-        body: "SAATHI shortlisted these for you.",
-      },
-      {
-        icon: <FileCheck2 className="h-4 w-4" />,
-        tone: "primary",
-        title: "Your caste certificate was verified",
-        body: "It unlocks 12 more scholarships.",
-      },
-      {
-        icon: <Bell className="h-4 w-4" />,
-        tone: "muted",
-        title: "Mock test scheduled for Friday 7am",
-        body: "Full-length JEE Main, 3 hours.",
-      },
-    ],
-  },
-];
+function getRelativeTime(dateInput: Date | string) {
+  const date = new Date(dateInput);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-export default function NotificationsPage() {
+  if (diffInSeconds < 60) return "Just now";
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays === 1) return "Yesterday";
+  if (diffInDays < 30) return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+
+  return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+}
+
+function getNotificationIcon(type: string) {
+  switch (type) {
+    case "SUCCESS":
+      return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
+    case "WARNING":
+      return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+    case "INFO":
+    default:
+      return <Bell className="h-5 w-5 text-primary" />;
+  }
+}
+
+export default async function NotificationsPage() {
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    redirect("/auth/signin");
+  }
+
+  const notifications =
+    await notificationService.getNotifications(
+      session.user.id
+    );
+
+  const unreadCount =
+    await notificationService.unreadCount(
+      session.user.id
+    );
+
   return (
     <AppShell
       title="Notifications"
-      subtitle="Only nudges that move you forward. Nothing else."
+      subtitle={`${notifications.length} notifications`}
+      unreadCount={unreadCount}
     >
-      <div className="space-y-8">
-        {GROUPS.map((group) => (
-          <div key={group.label}>
-            <div className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              {group.label}
-            </div>
+      {notifications.length === 0 ? (
+        <div className="surface-card rounded-2xl p-10 text-center">
+          <h2 className="text-xl font-semibold">
+            You're all caught up 🎉
+          </h2>
 
-            <ul className="space-y-2">
-              {group.items.map((notification, index) => {
-                const bg =
-                  notification.tone === "primary"
-                    ? "bg-sky-soft/60"
-                    : notification.tone === "accent"
-                    ? "bg-gold-soft/70"
-                    : notification.tone === "secondary"
-                    ? "bg-mint-soft/60"
-                    : "bg-muted";
+          <p className="mt-2 text-muted-foreground">
+            No notifications yet.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {notifications.map((notification: any) => (
+            <div
+              key={notification.id}
+              className={`surface-card rounded-2xl p-5 transition-all ${
+                !notification.isRead
+                  ? "border border-primary/20 bg-primary/5"
+                  : "border border-border"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface border border-border">
+                  {getNotificationIcon(notification.type)}
+                </div>
 
-                return (
-                  <li
-                    key={index}
-                    className={`surface-card flex items-start gap-3 p-4 ${bg}`}
-                  >
-                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-surface text-foreground">
-                      {notification.icon}
-                    </span>
-
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-foreground">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-semibold text-foreground">
                         {notification.title}
-                      </div>
+                      </h3>
 
-                      <div className="text-xs text-muted-foreground">
-                        {notification.body}
-                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {notification.message}
+                      </p>
                     </div>
 
-                    <button className="text-[11px] font-semibold text-muted-foreground hover:text-foreground">
-                      Dismiss
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </div>
+                    {!notification.isRead && (
+                      <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary shrink-0">
+                        New
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {getRelativeTime(notification.createdAt)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </AppShell>
   );
 }

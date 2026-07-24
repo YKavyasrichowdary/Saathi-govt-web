@@ -87,6 +87,22 @@ enum OpportunitySource {
   NGO
 }
 
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+}
+enum DocumentType {
+  RESUME
+  AADHAAR
+  PAN
+  BONAFIDE
+  INCOME_CERTIFICATE
+  CASTE_CERTIFICATE
+  MARKS_MEMO
+  OTHER
+}
+
 model User {
   id String @id @default(uuid())
 
@@ -111,6 +127,8 @@ model User {
   sessions           Session[]
   savedOpportunities SavedOpportunity[]
   applications       Application[]
+  notifications      Notification[]
+  documents Document[]
 }
 
 model Account {
@@ -381,6 +399,13 @@ model Opportunity {
 
   bookmarks SavedOpportunity[]
   applications Application[]
+
+  skills String[] @default([])
+
+  interests String[] @default([])
+
+  careerTags String[] @default([])
+
   
 }
 
@@ -424,4 +449,53 @@ model Application {
   @@unique([userId, opportunityId])
   @@index([userId])
   @@index([opportunityId])
+}
+
+model Notification {
+
+  id String @id @default(uuid())
+
+  userId String
+
+  title String
+
+  message String
+
+  type NotificationType
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+
+  @@index([userId])
+}
+
+model Document {
+  id String @id @default(uuid())
+
+  userId String
+
+  title String
+
+  type DocumentType
+
+  fileUrl String
+
+  fileName String
+
+  fileSize Int
+
+  mimeType String
+
+  verified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  @@index([userId])
 }
