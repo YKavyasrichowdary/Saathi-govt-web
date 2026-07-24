@@ -29,17 +29,26 @@ export default function RecommendationCard({
           </p>
         </div>
 
-        <div className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-          {recommendation.matchScore}%
+        <div className="rounded-full bg-primary/10 px-3 py-2 text-sm font-semibold text-primary">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-current" />
+            <span className="font-semibold">
+              {recommendation.matchScore}%
+            </span>
+          </div>
         </div>
 
       </div>
 
       <div className="mt-5 space-y-2">
 
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Why Recommended
+        </h4>
+
         {recommendation.breakdown
           .filter(item => item.matched)
-          .slice(0,4)
+          .slice(0,5)
           .map(item => (
 
             <div
@@ -48,7 +57,8 @@ export default function RecommendationCard({
             >
               <BadgeCheck className="h-4 w-4 text-green-600"/>
 
-              {item.category}
+              <span>{item.category}</span>
+
             </div>
 
           ))}

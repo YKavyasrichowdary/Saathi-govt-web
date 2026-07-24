@@ -11,7 +11,9 @@ import {
 } from "@/components/PageBits";
 import recommendationService from "@/services/recommendation/recommendation.service";
 import RecommendationGrid from "@/components/recommendation/RecommendationGrid";
-
+import profileCompletionService from "@/services/profile/profile-completion.service";
+import ProfileCompletionCard from "@/components/dashboard/ProfileCompletionCard";
+import notificationService from "@/services/notification/notification.service";
 import {
   ArrowRight,
   CheckCircle2,
@@ -52,11 +54,19 @@ export default async function DashboardPage() {
 
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
+    include: {
+      skills: true,
+      interests: true,
+      careerGoals: true,
+    },
   });
 
   if (!profile) {
     redirect("/onboarding");
   }
+
+  const completion =
+    profileCompletionService.calculate(profile);
 
   const stats = await dashboardService.getStats(
   session.user.id
@@ -76,11 +86,15 @@ export default async function DashboardPage() {
     month: "long",
   });
 
+  const unreadCount =
+    await notificationService.unreadCount(session.user.id);
+
   return (
     <AppShell
       navigation={studentNavigation}
       title={`Good morning, ${firstName}.`}
       subtitle={`${today} · You have 3 gentle tasks today.`}
+      unreadCount={unreadCount}
       actions={
         <Link
           href="/companion"
@@ -156,6 +170,10 @@ export default async function DashboardPage() {
   value={stats.featuredCount.toString()}
   hint="Featured opportunities."
   tone="primary"
+/>
+<ProfileCompletionCard
+  percentage={completion.percentage}
+  remaining={completion.remaining}
 />
       </div>
 

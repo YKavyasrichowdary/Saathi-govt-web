@@ -156,12 +156,14 @@ export function AppShell({
   title,
   subtitle,
   actions,
+  unreadCount,
   children,
 }: {
   navigation?: NavItem[];
   title?: string;
   subtitle?: string;
   actions?: ReactNode;
+  unreadCount?: number;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -241,7 +243,11 @@ export function AppShell({
             >
               <Bell className="h-4 w-4" />
 
-              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
+              {typeof unreadCount === "number" && unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </Link>
 
             <Link

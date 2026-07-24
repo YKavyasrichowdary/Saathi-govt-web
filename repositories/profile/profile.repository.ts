@@ -1,6 +1,19 @@
 import prisma from "@/lib/prisma";
 
 class ProfileRepository {
+  async getProfile(userId: string) {
+    return prisma.profile.findUnique({
+      where: {
+        userId,
+      },
+      include: {
+        skills: true,
+        interests: true,
+        careerGoals: true,
+      },
+    });
+  }
+
   async upsertProfile(userId: string, data: any) {
     const { skills, interests, careerGoals, dateOfBirth, ...scalarData } = data;
 

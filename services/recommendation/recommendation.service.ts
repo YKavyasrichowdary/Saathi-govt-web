@@ -1,8 +1,11 @@
 import recommendationRepository from "@/repositories/recommendation/recommendation.repository";
+import { RECOMMENDATION_WEIGHTS } from "@/constants/recommendation-weights";
+import { compareStrings } from "@/utils/recommendation";
 import {
-  RecommendedOpportunity,
   MatchBreakdown,
+  RecommendedOpportunity,
 } from "@/types/recommendation";
+import profileCompletionService from "../profile/profile-completion.service";
 
 class RecommendationService {
   async getRecommendations(
@@ -18,6 +21,12 @@ class RecommendationService {
     const opportunities =
       await recommendationRepository.getOpenOpportunities();
 
+      const completion =
+  profileCompletionService.calculate(profile);
+
+if (completion.percentage < 50) {
+  return [];
+}
     const recommendations = opportunities.map((opportunity) => {
       let earned = 0;
       let possible = 0;
@@ -58,7 +67,7 @@ class RecommendationService {
 
       evaluate(
         "Education",
-        30,
+        RECOMMENDATION_WEIGHTS.EDUCATION,
         opportunity.educationLevel,
         profile.educationLevel,
         (a, b) => a === b
@@ -66,61 +75,122 @@ class RecommendationService {
 
       evaluate(
         "Course",
-        20,
+        RECOMMENDATION_WEIGHTS.COURSE,
         opportunity.course,
         profile.course,
-        (a, b) =>
-          String(a).toLowerCase() ===
-          String(b).toLowerCase()
+        (a, b) => compareStrings(String(a), String(b))
       );
 
       evaluate(
         "Specialization",
-        15,
+        RECOMMENDATION_WEIGHTS.SPECIALIZATION,
         opportunity.specialization,
         profile.specialization,
-        (a, b) =>
-          String(a).toLowerCase() ===
-          String(b).toLowerCase()
+        (a, b) => compareStrings(String(a), String(b))
       );
 
       evaluate(
         "State",
-        10,
+        RECOMMENDATION_WEIGHTS.STATE,
         opportunity.state,
         profile.state,
-        (a, b) =>
-          String(a).toLowerCase() ===
-          String(b).toLowerCase()
+        (a, b) => compareStrings(String(a), String(b))
       );
 
       if (opportunity.minCGPA !== null) {
-        possible += 15;
+        possible += RECOMMENDATION_WEIGHTS.CGPA;
 
         const matched =
           profile.cgpa !== null &&
           profile.cgpa >= opportunity.minCGPA;
 
         if (matched) {
-          earned += 15;
+          earned += RECOMMENDATION_WEIGHTS.CGPA;
         }
 
         breakdown.push({
           category: "CGPA",
           matched,
-          weight: 15,
+          weight: RECOMMENDATION_WEIGHTS.CGPA,
         });
       }
 
       if (opportunity.featured) {
-        possible += 10;
-        earned += 10;
+        possible += RECOMMENDATION_WEIGHTS.FEATURED;
+        earned += RECOMMENDATION_WEIGHTS.FEATURED;
 
         breakdown.push({
           category: "Featured",
           matched: true,
-          weight: 10,
+          weight: RECOMMENDATION_WEIGHTS.FEATURED,
         });
+      }
+
+      const searchableText = `
+${opportunity.title}
+${opportunity.description}
+${opportunity.organization}
+`.toLowerCase();
+
+      if (profile.skills && profile.skills.length > 0) {
+        possible += RECOMMENDATION_WEIGHTS.SKILL;
+        for (const skill of profile.skills) {
+          if (
+            searchableText.includes(skill.name.toLowerCase())
+          ) {
+            earned += RECOMMENDATION_WEIGHTS.SKILL;
+
+            breakdown.push({
+              category: `Skill: ${skill.name}`,
+              matched: true,
+              weight: RECOMMENDATION_WEIGHTS.SKILL,
+            });
+
+            break;
+          }
+        }
+      }
+
+      if (profile.interests && profile.interests.length > 0) {
+        possible += RECOMMENDATION_WEIGHTS.INTEREST;
+        for (const interest of profile.interests) {
+          if (
+            searchableText.includes(
+              interest.name.toLowerCase()
+            )
+          ) {
+            earned += RECOMMENDATION_WEIGHTS.INTEREST;
+
+            breakdown.push({
+              category: `Interest: ${interest.name}`,
+              matched: true,
+              weight: RECOMMENDATION_WEIGHTS.INTEREST,
+            });
+
+            break;
+          }
+        }
+      }
+
+      if (profile.careerGoals && profile.careerGoals.length > 0) {
+        possible += RECOMMENDATION_WEIGHTS.CAREER_GOAL;
+        for (const goal of profile.careerGoals) {
+          if (
+            searchableText.includes(
+              goal.title.toLowerCase()
+            )
+          ) {
+            earned += RECOMMENDATION_WEIGHTS.CAREER_GOAL;
+
+            breakdown.push({
+              category: `Career Goal: ${goal.title}`,
+              matched: true,
+              weight: RECOMMENDATION_WEIGHTS.CAREER_GOAL,
+            });
+
+            break;
+          }
+        }
       }
 
       const matchScore =

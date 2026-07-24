@@ -86,5 +86,16 @@ export const studentNavigation: NavItem[] = [
     icon: "LifeBuoy",
     group: "You",
   },
-  
+  {
+    href: "/recommendations",
+    label: "Recommendations",
+    icon: "Sparkles",
+    group: "Discover",
+},
+{
+  href: "/notifications",
+  label: "Notifications",
+  icon: "Bell",
+  group: "Account",
+},
 ];
