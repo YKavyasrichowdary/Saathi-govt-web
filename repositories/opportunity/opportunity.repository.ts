@@ -95,101 +95,57 @@ class OpportunityRepository {
     });
   }
 
-  async search(params: OpportunitySearchParams) {
-    const {
-      q,
-      type,
-      mode,
-      source,
-      status = "OPEN",
-      educationLevel,
-      limit = 50,
-      userId,
-    } = params;
-
-    const where: Record<string, unknown> = {};
-
-    if (status && status !== "ALL") {
-      where.status = status as OpportunityStatus;
-    }
-
-    if (type) {
-      where.type = type as OpportunityType;
-    }
-
-    if (mode) {
-      where.mode = mode as OpportunityMode;
-    }
-
-    if (source) {
-      where.source = source as OpportunitySource;
-    }
-
-    if (educationLevel) {
-      where.educationLevel = educationLevel as EducationLevel;
-    }
-
-    if (q && q.trim()) {
-      const query = q.trim();
-      const queryUpper = query.toUpperCase();
-
-      const validTypes = Object.values(OpportunityType);
-
-      let matchedType: OpportunityType | undefined;
-      if (validTypes.includes(queryUpper as OpportunityType)) {
-        matchedType = queryUpper as OpportunityType;
-      } else if (queryUpper.endsWith("S")) {
-        const singularUpper = queryUpper.slice(0, -1) as OpportunityType;
-        if (validTypes.includes(singularUpper)) {
-          matchedType = singularUpper;
-        }
-      }
-
-      const searchConditions: Record<string, unknown>[] = [
-        { title: { contains: query, mode: "insensitive" } },
-        { description: { contains: query, mode: "insensitive" } },
-        { organization: { contains: query, mode: "insensitive" } },
-        { eligibility: { contains: query, mode: "insensitive" } },
-        { benefits: { contains: query, mode: "insensitive" } },
-        { state: { contains: query, mode: "insensitive" } },
-        { city: { contains: query, mode: "insensitive" } },
-      ];
-
-      if (matchedType) {
-        searchConditions.push({ type: matchedType });
-      }
-
-      where.OR = searchConditions;
-    }
-
-    return prisma.opportunity.findMany({
-      where,
-      include: userId
-        ? {
-            bookmarks: {
-              where: {
-                userId,
-              },
-              select: {
-                id: true,
-              },
-            },
-          }
-        : undefined,
-      orderBy: [
+  async search(query: string) {
+  return prisma.opportunity.findMany({
+    where: {
+      status: OpportunityStatus.OPEN,
+      OR: [
         {
-          featured: "desc",
+          title: {
+            contains: query,
+            mode: "insensitive",
+          },
         },
         {
-          deadline: "asc",
+          organization: {
+            contains: query,
+            mode: "insensitive",
+          },
         },
         {
-          createdAt: "desc",
+          description: {
+            contains: query,
+            mode: "insensitive",
+          },
+        },
+        {
+          location: {
+            contains: query,
+            mode: "insensitive",
+          },
+        },
+        {
+          course: {
+            contains: query,
+            mode: "insensitive",
+          },
+        },
+        {
+          specialization: {
+            contains: query,
+            mode: "insensitive",
+          },
         },
       ],
-      take: limit,
-    });
-  }
+    },
+    orderBy: [
+      { featured: "desc" },
+      { deadline: "asc" },
+      { createdAt: "desc" },
+    ],
+  });
+}
+  
 }
 
 export default new OpportunityRepository();

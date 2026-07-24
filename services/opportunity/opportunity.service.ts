@@ -1,6 +1,8 @@
+import prisma from "@/lib/prisma";
 import opportunityRepository, {
   OpportunitySearchParams,
 } from "@/repositories/opportunity/opportunity.repository";
+import { OpportunityStatus } from "@prisma/client";
 
 class OpportunityService {
   async getDashboardOpportunities(userId: string) {
@@ -19,9 +21,17 @@ class OpportunityService {
     return opportunityRepository.getAll();
   }
 
-  async search(params: OpportunitySearchParams) {
-    return opportunityRepository.search(params);
-  }
+async search(query: string) {
+  return prisma.opportunity.findMany({
+    where: {
+      status: OpportunityStatus.OPEN,
+      title: {
+        contains: query,
+        mode: "insensitive",
+      },
+    },
+  });
+}
 }
 
 export default new OpportunityService();
