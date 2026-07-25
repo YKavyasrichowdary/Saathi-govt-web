@@ -97,7 +97,7 @@ export default async function DashboardPage() {
       unreadCount={unreadCount}
       actions={
         <Link
-          href="/companion"
+          href="/ai"
           className="hidden md:inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-[0_8px_20px_-10px_oklch(0.55_0.2_262/0.6)]"
         >
           <Sparkles className="h-3.5 w-3.5" />

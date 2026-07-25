@@ -92,6 +92,7 @@ enum NotificationType {
   SUCCESS
   WARNING
 }
+
 enum DocumentType {
   RESUME
   AADHAAR
@@ -128,7 +129,8 @@ model User {
   savedOpportunities SavedOpportunity[]
   applications       Application[]
   notifications      Notification[]
-  documents Document[]
+  documents          Document[]
+  resumeAnalyses     ResumeAnalysis[]
 }
 
 model Account {
@@ -397,7 +399,7 @@ model Opportunity {
 
   updatedAt DateTime @updatedAt
 
-  bookmarks SavedOpportunity[]
+  bookmarks    SavedOpportunity[]
   applications Application[]
 
   skills String[] @default([])
@@ -405,8 +407,6 @@ model Opportunity {
   interests String[] @default([])
 
   careerTags String[] @default([])
-
-  
 }
 
 model SavedOpportunity {
@@ -452,7 +452,6 @@ model Application {
 }
 
 model Notification {
-
   id String @id @default(uuid())
 
   userId String
@@ -467,7 +466,7 @@ model Notification {
 
   createdAt DateTime @default(now())
 
-  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -495,7 +494,47 @@ model Document {
 
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  resumeAnalyses ResumeAnalysis[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model ResumeAnalysis {
+  id String @id @default(cuid())
+
+  documentId String
+
+  userId String
+
+  overallScore Int
+
+  atsScore Int
+
+  strengths Json
+
+  weaknesses Json
+
+  missingSkills Json
+
+  improvements Json
+
+  summary String @db.Text
+
+  aiModel String @default("gemini-2.5-flash")
+
+  version Int @default(1)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([documentId])
+  @@index([createdAt])
 }

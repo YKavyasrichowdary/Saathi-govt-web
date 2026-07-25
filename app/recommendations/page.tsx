@@ -6,7 +6,10 @@ import RecommendationGrid from "@/components/recommendation/RecommendationGrid";
 import { getSession } from "@/lib/auth";
 
 import recommendationService from "@/services/recommendation/recommendation.service";
-
+import {
+  getScoreColor,
+  getScoreLabel,
+} from "@/lib/intelligence/score";
 export default async function RecommendationsPage() {
 
   const session = await getSession();
