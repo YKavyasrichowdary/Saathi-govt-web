@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import {
   Trash2,
   Download,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
+
+import resumeAnalysisClient from "@/services/resume-analysis.client";
 
 import { toast } from "sonner";
 
@@ -30,6 +34,7 @@ export default function DocumentCard({
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   async function viewDocument() {
@@ -112,6 +117,31 @@ export default function DocumentCard({
 
   }
 
+  async function analyzeResume() {
+  if (analyzing) return;
+
+  setAnalyzing(true);
+
+  try {
+    const analysisId =
+      await resumeAnalysisClient.analyzeDocument(
+        document.id
+      );
+
+    toast.success("Resume analyzed successfully.");
+
+    router.push(
+      `/resume-review/${analysisId}`
+    );
+  } catch (error: any) {
+    toast.error(
+      error.message || "Failed to analyze resume."
+    );
+  } finally {
+    setAnalyzing(false);
+  }
+}
+
   const status = document.verified ? "Verified" : "Pending";
 
   const badgeStyles: Record<string, string> = {
@@ -169,43 +199,57 @@ export default function DocumentCard({
             <button
               onClick={() => setShowConfirm(false)}
               disabled={loading}
-              className="btn-secondary px-3 py-1.5 text-xs"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={deleteDocument}
               disabled={loading}
-              className="btn-destructive px-3 py-1.5 text-xs flex items-center gap-1"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-all flex items-center gap-1 cursor-pointer"
             >
               {loading ? "Deleting..." : "Delete"}
             </button>
           </div>
         </div>
       ) : (
-        <div className="mt-6 flex items-center gap-3">
-
+        <div className="mt-6 flex items-center gap-2.5">
           <button
             onClick={viewDocument}
-            className="btn-secondary flex items-center gap-2"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/80 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <Download className="h-4 w-4" />
-
+            <Download className="h-3.5 w-3.5 text-slate-500" />
             View
-
           </button>
+
+          {document.type === "RESUME" &&
+            document.mimeType === "application/pdf" && (
+              <button
+                onClick={analyzeResume}
+                disabled={analyzing}
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center gap-1.5 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {analyzing ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5 text-blue-200 animate-pulse" />
+                    <span>Analyze with AI</span>
+                  </>
+                )}
+              </button>
+            )}
 
           <button
             onClick={() => setShowConfirm(true)}
-            className="btn-destructive flex items-center gap-2"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all flex items-center gap-1.5 cursor-pointer ml-auto"
           >
-
-            <Trash2 className="h-4 w-4" />
-
+            <Trash2 className="h-3.5 w-3.5" />
             Delete
-
           </button>
-
         </div>
       )}
 

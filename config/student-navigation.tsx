@@ -33,7 +33,7 @@ export const studentNavigation: NavItem[] = [
     group: "Discover",
   },
   {
-    href: "/companion",
+    href: "/ai",
     label: "AI Companion",
     icon: "MessageCircleHeart",
     group: "Work",
@@ -91,11 +91,5 @@ export const studentNavigation: NavItem[] = [
     label: "Recommendations",
     icon: "Sparkles",
     group: "Discover",
-},
-{
-  href: "/notifications",
-  label: "Notifications",
-  icon: "Bell",
-  group: "Account",
-},
+  },
 ];

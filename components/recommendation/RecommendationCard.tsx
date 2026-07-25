@@ -1,10 +1,6 @@
-import Link from "next/link";
-import {
-  ArrowRight,
-  BadgeCheck,
-  Star,
-} from "lucide-react";
-
+import RecommendationScore from "./RecommendationScore";
+import RecommendationSection from "./RecommendationSection";
+import RecommendationActions from "./RecommendationActions";
 import { RecommendedOpportunity } from "@/types/recommendation";
 
 interface Props {
@@ -14,66 +10,61 @@ interface Props {
 export default function RecommendationCard({
   recommendation,
 }: Props) {
+  const analysis = recommendation.analysis;
+  const score = analysis?.score ?? recommendation.matchScore ?? 0;
+
+  const strengths =
+    analysis?.strengths && analysis.strengths.length > 0
+      ? analysis.strengths
+      : recommendation.breakdown
+          ?.filter((item) => item.matched)
+          .map((item) => `${item.category} matches`) || [];
+
+  const missing = analysis?.missing || [];
+  const nextSteps = analysis?.nextSteps || [];
+
   return (
-    <div className="surface-card rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-lg">
+    <div className="surface-card rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-lg border border-border flex flex-col justify-between">
+      <div>
+        {/* Header & Score Badge */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">
+              {recommendation.title}
+            </h3>
 
-      <div className="flex items-start justify-between">
-
-        <div>
-          <h3 className="text-lg font-semibold">
-            {recommendation.title}
-          </h3>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            {recommendation.organization}
-          </p>
-        </div>
-
-        <div className="rounded-full bg-primary/10 px-3 py-2 text-sm font-semibold text-primary">
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-current" />
-            <span className="font-semibold">
-              {recommendation.matchScore}%
-            </span>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {recommendation.organization}
+            </p>
           </div>
+
+          <RecommendationScore score={score} />
         </div>
 
+        {/* Why it matches */}
+        <RecommendationSection
+          title="Why it matches"
+          items={strengths}
+          variant="success"
+        />
+
+        {/* Needs Improvement / Missing Skills & Empty State */}
+        <RecommendationSection
+          title="Needs Improvement"
+          items={missing}
+          variant="warning"
+        />
+
+        {/* Recommended Actions */}
+        <RecommendationSection
+          title="Recommended Actions"
+          items={nextSteps}
+          variant="info"
+        />
       </div>
 
-      <div className="mt-5 space-y-2">
-
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Why Recommended
-        </h4>
-
-        {recommendation.breakdown
-          .filter(item => item.matched)
-          .slice(0,5)
-          .map(item => (
-
-            <div
-              key={item.category}
-              className="flex items-center gap-2 text-sm"
-            >
-              <BadgeCheck className="h-4 w-4 text-green-600"/>
-
-              <span>{item.category}</span>
-
-            </div>
-
-          ))}
-
-      </div>
-
-      <Link
-        href={`/opportunities/${recommendation.slug}`}
-        className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
-      >
-        View Opportunity
-
-        <ArrowRight className="h-4 w-4"/>
-      </Link>
-
+      {/* Actions */}
+      <RecommendationActions slug={recommendation.slug} />
     </div>
   );
 }

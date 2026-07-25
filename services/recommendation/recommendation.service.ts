@@ -6,6 +6,7 @@ import {
   RecommendedOpportunity,
 } from "@/types/recommendation";
 import profileCompletionService from "../profile/profile-completion.service";
+import { analyzeRecommendation } from "@/lib/intelligence";
 
 class RecommendationService {
   async getRecommendations(
@@ -21,12 +22,13 @@ class RecommendationService {
     const opportunities =
       await recommendationRepository.getOpenOpportunities();
 
-      const completion =
-  profileCompletionService.calculate(profile);
+    const completion =
+      profileCompletionService.calculate(profile);
 
-if (completion.percentage < 50) {
-  return [];
-}
+    if (completion.percentage < 50) {
+      return [];
+    }
+
     const recommendations = opportunities.map((opportunity) => {
       let earned = 0;
       let possible = 0;
@@ -205,9 +207,22 @@ ${opportunity.organization}
       };
     });
 
-    return recommendations.sort(
+    const sorted = recommendations.sort(
       (a, b) => b.matchScore - a.matchScore
     );
+
+    const enhancedRecommendations = sorted.map(
+      (recommendation) => ({
+        ...recommendation,
+
+        analysis: analyzeRecommendation(
+          profile,
+          recommendation
+        ),
+      })
+    );
+
+    return enhancedRecommendations;
   }
 }
 

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { calculateProfileCompletion } from "@/lib/profile/completion";
 
 class ProfileRepository {
   async getProfile(userId: string) {
@@ -23,7 +24,7 @@ class ProfileRepository {
     const createInterests = interests?.map((i: string) => ({ name: i })) || [];
     const createGoals = careerGoals?.map((cg: string) => ({ title: cg })) || [];
 
-    return prisma.profile.upsert({
+    await prisma.profile.upsert({
       where: {
         userId,
       },
@@ -31,7 +32,6 @@ class ProfileRepository {
       update: {
         ...scalarData,
         dateOfBirth: dob,
-        isProfileCompleted: true,
         skills: {
           deleteMany: {},
           create: createSkills,
@@ -50,7 +50,6 @@ class ProfileRepository {
         ...scalarData,
         userId,
         dateOfBirth: dob,
-        isProfileCompleted: true,
         skills: {
           create: createSkills,
         },
@@ -60,6 +59,23 @@ class ProfileRepository {
         careerGoals: {
           create: createGoals,
         },
+      },
+    });
+
+    const fullProfile = await this.getProfile(userId);
+    const completion = calculateProfileCompletion(fullProfile);
+
+    return prisma.profile.update({
+      where: {
+        userId,
+      },
+      data: {
+        isProfileCompleted: completion === 100,
+      },
+      include: {
+        skills: true,
+        interests: true,
+        careerGoals: true,
       },
     });
   }
