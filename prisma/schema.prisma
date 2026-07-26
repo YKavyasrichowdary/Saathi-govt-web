@@ -104,6 +104,44 @@ enum DocumentType {
   OTHER
 }
 
+enum MissionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum MissionPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum MissionCategory {
+  PROFILE
+  RESUME
+  SKILL
+  APPLICATION
+  CERTIFICATION
+  PROJECT
+  INTERVIEW
+  HACKATHON
+  OTHER
+}
+
+enum RoadmapStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
 model User {
   id String @id @default(uuid())
 
@@ -131,6 +169,9 @@ model User {
   notifications      Notification[]
   documents          Document[]
   resumeAnalyses     ResumeAnalysis[]
+  missions Mission[]
+  roadmaps Roadmap[]
+  xp UserXP?
 }
 
 model Account {
@@ -407,6 +448,7 @@ model Opportunity {
   interests String[] @default([])
 
   careerTags String[] @default([])
+  roadmaps Roadmap[]
 }
 
 model SavedOpportunity {
@@ -537,4 +579,146 @@ model ResumeAnalysis {
   @@index([userId])
   @@index([documentId])
   @@index([createdAt])
+}
+
+
+model Mission {
+
+  id String @id @default(cuid())
+
+  userId String
+
+  title String
+
+  description String
+
+  category MissionCategory
+
+  priority MissionPriority @default(MEDIUM)
+
+  status MissionStatus @default(PENDING)
+
+  estimatedMinutes Int
+
+  // Structured rewards
+  rewardResumeScore Int? @default(0)
+
+  rewardOpportunityMatch Int? @default(0)
+
+  rewardProfileScore Int? @default(0)
+
+  rewardXP Int? @default(0)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  completedAt DateTime?
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  @@index([userId])
+
+  @@index([status])
+
+  @@index([category])
+}
+
+model UserXP {
+
+  id String @id @default(cuid())
+
+  userId String @unique
+
+  totalXP Int @default(0)
+
+  level Int @default(1)
+
+  currentStreak Int @default(0)
+
+  longestStreak Int @default(0)
+
+  missionsCompleted Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+}
+
+model Roadmap {
+
+  id String @id @default(cuid())
+
+  userId String
+
+  opportunityId String?
+
+  title String
+
+  description String?
+
+  readinessScore Int
+
+  targetScore Int
+
+  estimatedDays Int
+
+  status RoadmapStatus @default(ACTIVE)
+
+  aiSummary String? @db.Text
+
+  generatedBy String @default("gemini-2.5-flash")
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+
+  opportunity Opportunity? @relation(fields:[opportunityId], references:[id])
+
+  milestones RoadmapMilestone[]
+
+  @@index([userId])
+}
+
+model RoadmapMilestone {
+
+  id String @id @default(cuid())
+
+  roadmapId String
+
+  title String
+
+  description String?
+
+  order Int
+
+  roadmap Roadmap @relation(fields:[roadmapId],references:[id],onDelete:Cascade)
+
+  tasks RoadmapTask[]
+}
+
+model RoadmapTask {
+
+  id String @id @default(cuid())
+
+  milestoneId String
+
+  title String
+
+  description String?
+
+  estimatedMinutes Int
+
+  status TaskStatus @default(PENDING)
+
+  order Int
+
+  rewardXP Int @default(20)
+
+  milestone RoadmapMilestone @relation(fields:[milestoneId],references:[id],onDelete:Cascade)
 }

@@ -1,14 +1,14 @@
 import prisma from "@/lib/prisma";
 
 class DashboardRepository {
-  async getStats(userId: string) {
+  async getQuickStats(userId: string) {
     const [
-      savedCount,
-      applicationCount,
-      opportunityCount,
-      featuredCount,
+      documents,
+      applications,
+      saved,
+      analyses,
     ] = await Promise.all([
-      prisma.savedOpportunity.count({
+      prisma.document.count({
         where: {
           userId,
         },
@@ -20,26 +20,77 @@ class DashboardRepository {
         },
       }),
 
-      prisma.opportunity.count({
+      prisma.savedOpportunity.count({
         where: {
-          status: "OPEN",
+          userId,
         },
       }),
 
-      prisma.opportunity.count({
+      prisma.resumeAnalysis.count({
         where: {
-          status: "OPEN",
-          featured: true,
+          userId,
         },
       }),
     ]);
 
     return {
-      savedCount,
-      applicationCount,
-      opportunityCount,
-      featuredCount,
+      documents,
+      applications,
+      saved,
+      analyses,
     };
+  }
+
+  async getLatestResume(userId: string) {
+    return prisma.resumeAnalysis.findFirst({
+      where: {
+        userId,
+      },
+
+      include: {
+        document: true,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  async getRecentActivity(userId: string) {
+    return prisma.notification.findMany({
+      where: {
+        userId,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+
+      take: 5,
+    });
+  }
+
+  async getSavedOpportunities(userId: string) {
+    return prisma.savedOpportunity.findMany({
+      where: {
+        userId,
+      },
+
+      include: {
+        opportunity: true,
+      },
+
+      take: 4,
+    });
+  }
+
+  async getUser(userId: string) {
+    return prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
   }
 }
 

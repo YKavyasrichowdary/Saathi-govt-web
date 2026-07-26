@@ -22,10 +22,23 @@ class ResumeParserService {
         try {
           let text = "";
 
+          const safeDecode = (str: string): string => {
+            if (!str) return "";
+            try {
+              return decodeURIComponent(str);
+            } catch {
+              try {
+                return decodeURIComponent(str.replace(/%(?![0-9a-fA-F]{2})/g, "%25"));
+              } catch {
+                return str;
+              }
+            }
+          };
+
           for (const page of pdfData.Pages) {
             for (const item of page.Texts) {
               for (const run of item.R) {
-                text += decodeURIComponent(run.T) + " ";
+                text += safeDecode(run.T) + " ";
               }
             }
 
