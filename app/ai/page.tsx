@@ -28,6 +28,8 @@ export default async function AIPage() {
       session.user.id
     );
 
+    
+
   const strength = calculateProfileStrength(dashboard.profile);
 
   const summary = buildDailySummary({
