@@ -7,6 +7,54 @@ import {
 
 class RoadmapRepository {
 
+  async completeTask(taskId: string) {
+
+  return prisma.roadmapTask.update({
+
+    where: {
+      id: taskId,
+    },
+
+    data: {
+
+      status: "COMPLETED",
+
+      completedAt: new Date(),
+
+    },
+
+  });
+
+}
+
+async getTask(taskId: string) {
+
+  return prisma.roadmapTask.findUnique({
+
+    where: {
+      id: taskId,
+    },
+
+    include: {
+
+      milestone: {
+
+        include: {
+
+          roadmap: true,
+
+          tasks: true,
+
+        },
+
+      },
+
+    },
+
+  });
+
+}
+
   async createRoadmap(
     data: Prisma.RoadmapCreateInput
   ) {
@@ -61,7 +109,68 @@ class RoadmapRepository {
       },
     });
   }
+async updateMilestoneStatus(
+  milestoneId: string
+) {
 
+  const milestone =
+    await prisma.roadmapMilestone.findUnique({
+
+      where: {
+        id: milestoneId,
+      },
+
+      include: {
+        tasks: true,
+      },
+
+    });
+
+  if (!milestone) {
+    return null;
+  }
+
+  const completed =
+    milestone.tasks.filter(
+      (task) =>
+        task.status === "COMPLETED"
+    ).length;
+
+  let status:
+    "PENDING"
+    | "IN_PROGRESS"
+    | "COMPLETED";
+
+  if (completed === 0) {
+
+    status = "PENDING";
+
+  } else if (
+    completed ===
+    milestone.tasks.length
+  ) {
+
+    status = "COMPLETED";
+
+  } else {
+
+    status = "IN_PROGRESS";
+
+  }
+
+  return prisma.roadmapMilestone.update({
+
+    where: {
+      id: milestoneId,
+    },
+
+    data: {
+      status,
+    },
+
+  });
+
+}
   async updateTaskStatus(
     taskId: string,
     status: TaskStatus
@@ -86,6 +195,73 @@ class RoadmapRepository {
       },
     });
   }
+
+ async updateRoadmapProgress(
+  roadmapId: string
+) {
+
+  const roadmap =
+    await prisma.roadmap.findUnique({
+
+      where: {
+        id: roadmapId,
+      },
+
+      include: {
+
+        milestones: {
+
+          include: {
+
+            tasks: true,
+
+          },
+
+        },
+
+      },
+
+    });
+
+  if (!roadmap) {
+    return null;
+  }
+
+  const tasks =
+    roadmap.milestones.flatMap(
+      (milestone) => milestone.tasks
+    );
+
+  if (tasks.length === 0) {
+    return roadmap;
+  }
+
+  const completedTasks =
+    tasks.filter(
+      (task) =>
+        task.status === "COMPLETED"
+    ).length;
+
+  const progress =
+    Math.round(
+      (completedTasks / tasks.length) * 100
+    );
+
+  return prisma.roadmap.update({
+
+    where: {
+      id: roadmapId,
+    },
+
+    data: {
+
+      readinessScore: progress,
+
+    },
+
+  });
+
+}
 
 }
 

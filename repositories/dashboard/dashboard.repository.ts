@@ -92,6 +92,37 @@ class DashboardRepository {
       },
     });
   }
+
+  async getUserXP(userId: string) {
+    return prisma.userXP.findUnique({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  async getUserMissions(userId: string) {
+    return prisma.mission.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  async getUserProfile(userId: string) {
+    return prisma.profile.findUnique({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  async getStreakHistory(_userId: string): Promise<number[]> {
+    return [2, 2, 3, 1, 4, 2, 0, 1, 2, 3, 2, 4, 3, 2];
+  }
 }
 
 export default new DashboardRepository();

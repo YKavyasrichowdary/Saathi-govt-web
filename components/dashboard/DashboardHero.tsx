@@ -1,23 +1,33 @@
 "use client";
 
-import { DashboardData } from "@/types/dashboard";
 import MissionHero from "./MissionHero";
 
 interface DashboardHeroProps {
-  dashboard?: DashboardData;
+  greeting?: string;
   name?: string | null;
+  mission?: {
+    title: string;
+    description: string;
+    estimatedMinutes: number;
+    rewardResumeScore?: number | null;
+    rewardOpportunityMatch?: number | null;
+  } | null;
 }
 
-export default function DashboardHero({ dashboard }: DashboardHeroProps) {
+export default function DashboardHero({
+  greeting,
+  name,
+  mission,
+}: DashboardHeroProps) {
   return (
     <MissionHero
-    title={dashboard?.mission?.title ?? "No Active Mission"}
-    description={dashboard?.mission?.description ?? "You're all caught up."}
-    progress={dashboard?.resume?.overallScore ?? 0}
-    estimatedTime={`${dashboard?.mission?.estimatedMinutes ?? ""} mins`}
-    reward={`+${dashboard?.mission?.rewardResumeScore ?? ""} Resume`}
-    matchIncrease={`+${dashboard?.mission?.rewardOpportunityMatch ?? ""} % Match`}
-    dueText="Today"
-/>
+      title={mission?.title ?? "No Active Mission"}
+      description={mission?.description ?? "You're all caught up."}
+      progress={0}
+      estimatedTime={`${mission?.estimatedMinutes ?? 0} mins`}
+      reward={`+${mission?.rewardResumeScore ?? 0} Resume`}
+      matchIncrease={`+${mission?.rewardOpportunityMatch ?? 0}% Match`}
+      dueText="Today"
+    />
   );
 }

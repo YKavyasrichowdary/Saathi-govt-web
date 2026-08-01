@@ -15,18 +15,52 @@ export default function Page() {
   return (
     <div className="p-8 bg-background min-h-screen">
       <DashboardLayout
-        hero={<DashboardHero name={session.user.name} />}
-        tasks={<TodayTasks />}
-        streak={<StreakCard />}
+        hero={<DashboardHero greeting="Good morning" name={session.user.name} />}
+        tasks={
+          <TodayTasks
+            tasks={[
+              {
+                id: "1",
+                title: "Complete Resume Review",
+                description: "Fix ATS formatting and improve technical skills.",
+                duration: "15 mins",
+                reward: "+5 Resume Score",
+                priority: "High",
+                completed: false,
+              },
+            ]}
+          />
+        }
+        streak={
+          <StreakCard
+            streak={{
+              currentStreak: 14,
+              longestStreak: 31,
+              days: [2, 2, 3, 1, 4, 2, 0, 1, 2, 3, 2, 4, 3, 2],
+            }}
+          />
+        }
         stats={
           <QuickStats
             stats={{ documents: 8, applications: 12, saved: 28, analyses: 21 }}
           />
         }
-        profile={<ProfileCompletion />}
+        profile={
+          <ProfileCompletion
+            completion={{
+              percentage: 75,
+              remaining: ["Add Skills", "Upload Resume"],
+            }}
+          />
+        }
         resume={
           <ResumeHealth
-            data={{ overallScore: 84, atsScore: 91, summary: "Good resume", document: "Resume.pdf" }}
+            data={{
+              overallScore: 84,
+              atsScore: 91,
+              summary: "Good resume",
+              document: "Resume.pdf",
+            }}
           />
         }
         recommendations={
@@ -47,7 +81,19 @@ export default function Page() {
             ]}
           />
         }
-        insights={<AIInsights />}
+        insights={
+          <AIInsights
+            insights={[
+              {
+                id: "1",
+                title: "ATS Score Improved",
+                description: "Your resume score improved by",
+                type: "improvement",
+                highlightText: "9 points",
+              },
+            ]}
+          />
+        }
         activity={
           <RecentActivity
             activities={[
