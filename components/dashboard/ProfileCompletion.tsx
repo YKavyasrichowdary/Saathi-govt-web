@@ -3,18 +3,19 @@
 import ProfileCompletionCard from "./ProfileCompletionCard";
 
 interface ProfileCompletionProps {
-  percentage?: number;
-  remaining?: string[];
+  completion: {
+    percentage: number;
+    remaining: string[];
+  };
 }
 
 export default function ProfileCompletion({
-  percentage = 75,
-  remaining = ["Add Skills", "Upload Resume", "Select Target Roles"],
+  completion,
 }: ProfileCompletionProps) {
   return (
     <ProfileCompletionCard
-      percentage={percentage}
-      remaining={remaining}
+      percentage={completion.percentage}
+      remaining={completion.remaining}
     />
   );
 }

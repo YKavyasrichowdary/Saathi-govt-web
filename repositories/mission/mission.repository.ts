@@ -86,16 +86,24 @@ class MissionRepository {
     });
   }
   async completeMission(id: string) {
-  return prisma.mission.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "COMPLETED",
-      completedAt: new Date(),
-    },
-  });
-}
+    return prisma.mission.update({
+      where: {
+        id,
+      },
+      data: {
+        status: "COMPLETED",
+        completedAt: new Date(),
+      },
+    });
+  }
+
+  async getMission(id: string) {
+    return prisma.mission.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
 }
 
 export default new MissionRepository();

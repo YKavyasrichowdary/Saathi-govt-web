@@ -42,6 +42,10 @@ async completeMission(id: string) {
     );
   }
 
+  async getMission(id: string) {
+    return repository.getMission(id);
+  }
+
   async deleteMission(id: string) {
     return repository.delete(id);
   }
