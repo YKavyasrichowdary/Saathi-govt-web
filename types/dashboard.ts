@@ -1,3 +1,7 @@
+export type Priority = "High" | "Medium" | "Low";
+
+export type InsightType = "recommendation" | "improvement";
+
 export interface DashboardTask {
   id: string;
   title: string;
@@ -5,7 +9,7 @@ export interface DashboardTask {
   duration: string;
   reward: string;
   completed: boolean;
-  priority: "High" | "Medium" | "Low";
+  priority: Priority;
 }
 
 export interface StreakData {
@@ -23,47 +27,67 @@ export interface AIInsightData {
   id: string;
   title: string;
   description: string;
-  type: "recommendation" | "improvement";
+  type: InsightType;
   highlightText: string;
+}
+
+export interface DashboardMission {
+  id: string;
+  title: string;
+  description: string;
+  estimatedMinutes: number;
+  priority: string;
+  progress?: number;
+  rewardResumeScore?: number | null;
+  rewardOpportunityMatch?: number | null;
+  rewardProfileScore?: number | null;
+  rewardXP?: number | null;
 }
 
 export interface DashboardHeroData {
   greeting: string;
   name: string;
   readinessScore: number;
-  currentMission: DashboardData["mission"];
+  currentMission: DashboardMission | null;
   xp: number;
+}
+
+export interface DashboardStats {
+  documents: number;
+  applications: number;
+  saved: number;
+  analyses: number;
+}
+
+export interface DashboardResume {
+  overallScore: number;
+  atsScore: number;
+  summary: string;
+  document: string;
+}
+
+export interface DashboardRecommendation {
+  id: string;
+  title: string;
+  organization: string;
+  deadline: Date | string | null;
+}
+
+export interface DashboardActivity {
+  id: string;
+  title: string;
+  message: string;
+  createdAt: Date | string;
 }
 
 export interface DashboardData {
   hero: DashboardHeroData;
 
-  mission: {
-    id: string;
-    title: string;
-    description: string;
-    estimatedMinutes: number;
-    priority: string;
-    progress?: number;
-    rewardResumeScore?: number | null;
-    rewardOpportunityMatch?: number | null;
-    rewardProfileScore?: number | null;
-    rewardXP?: number | null;
-  } | null;
+  mission: DashboardMission | null;
 
-  stats: {
-    documents: number;
-    applications: number;
-    saved: number;
-    analyses: number;
-  };
+  stats: DashboardStats;
 
-  resume: {
-    overallScore: number;
-    atsScore: number;
-    summary: string;
-    document: string;
-  } | null;
+  resume: DashboardResume | null;
 
   todayTasks: DashboardTask[];
 
@@ -71,9 +95,9 @@ export interface DashboardData {
 
   profileCompletion: ProfileCompletionData;
 
-  recommendations: any[];
+  recommendations: DashboardRecommendation[];
 
-  activity: any[];
+  activity: DashboardActivity[];
 
   insights: AIInsightData[];
 }

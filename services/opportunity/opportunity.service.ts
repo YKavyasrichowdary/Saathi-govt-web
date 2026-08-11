@@ -17,6 +17,10 @@ class OpportunityService {
     return opportunityRepository.getBySlug(slug);
   }
 
+  async getOpportunity(id: string) {
+    return opportunityRepository.getByIdOrSlug(id);
+  }
+
   async getAll(sort?: string) {
     return opportunityRepository.getAll(sort);
   }

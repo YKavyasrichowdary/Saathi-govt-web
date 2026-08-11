@@ -13,6 +13,7 @@ import RecommendedSection from "@/components/dashboard/RecommendedSection";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import AIInsights from "@/components/dashboard/AIInsights";
 import ProfileCompletion from "@/components/dashboard/ProfileCompletion";
+import FadeIn from "@/components/common/FadeIn";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -25,27 +26,29 @@ export default async function DashboardPage() {
 
   return (
     <AppShell title="Dashboard" subtitle="Welcome back">
-      <DashboardLayout
-        hero={
-          <DashboardHero
-            greeting={dashboard.hero.greeting}
-            name={dashboard.hero.name}
-            mission={dashboard.mission}
-          />
-        }
-        tasks={<TodayTasks tasks={dashboard.todayTasks} />}
-        streak={<StreakCard streak={dashboard.streak} />}
-        stats={<QuickStats stats={dashboard.stats} />}
-        profile={
-          <ProfileCompletion completion={dashboard.profileCompletion} />
-        }
-        resume={<ResumeHealth data={dashboard.resume} />}
-        recommendations={
-          <RecommendedSection opportunities={dashboard.recommendations} />
-        }
-        insights={<AIInsights insights={dashboard.insights} />}
-        activity={<RecentActivity activities={dashboard.activity} />}
-      />
+      <FadeIn>
+        <DashboardLayout
+          hero={
+            <DashboardHero
+              greeting={dashboard.hero.greeting}
+              name={dashboard.hero.name}
+              mission={dashboard.mission}
+            />
+          }
+          tasks={<TodayTasks tasks={dashboard.todayTasks} />}
+          streak={<StreakCard streak={dashboard.streak} />}
+          stats={<QuickStats stats={dashboard.stats} />}
+          profile={
+            <ProfileCompletion completion={dashboard.profileCompletion} />
+          }
+          resume={<ResumeHealth data={dashboard.resume} />}
+          recommendations={
+            <RecommendedSection opportunities={dashboard.recommendations} />
+          }
+          insights={<AIInsights insights={dashboard.insights} />}
+          activity={<RecentActivity activities={dashboard.activity} />}
+        />
+      </FadeIn>
     </AppShell>
   );
 }

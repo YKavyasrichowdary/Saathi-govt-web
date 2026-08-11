@@ -31,6 +31,9 @@ export const scholarships: SeedOpportunity[] = [
     educationLevel: EducationLevel.UNDERGRADUATE,
     featured: true,
     verified: true,
+    skills: ["Engineering Fundamentals", "Academic Excellence"],
+    interests: ["Higher Education", "Financial Aid"],
+    careerTags: ["Engineering Student", "Technical Education"],
   },
 
   {
@@ -55,6 +58,9 @@ export const scholarships: SeedOpportunity[] = [
     educationLevel: EducationLevel.UNDERGRADUATE,
     featured: true,
     verified: true,
+    skills: ["Technical Education"],
+    interests: ["Financial Support", "Inclusive Education"],
+    careerTags: ["Engineering Student"],
   },
 
   {
@@ -78,6 +84,9 @@ export const scholarships: SeedOpportunity[] = [
     deadline: new Date("2026-10-10"),
     educationLevel: EducationLevel.UNDERGRADUATE,
     verified: true,
+    skills: ["Leadership", "Academic Excellence"],
+    interests: ["Higher Education", "Mentorship"],
+    careerTags: ["Undergraduate Scholar"],
   },
 
   {
@@ -101,6 +110,9 @@ export const scholarships: SeedOpportunity[] = [
     deadline: new Date("2026-09-15"),
     educationLevel: EducationLevel.UNDERGRADUATE,
     verified: true,
+    skills: ["Scientific Research", "Mathematics", "Physics", "Chemistry"],
+    interests: ["Research", "Natural Sciences"],
+    careerTags: ["Research Scientist"],
   },
 
   {
@@ -125,6 +137,9 @@ export const scholarships: SeedOpportunity[] = [
     educationLevel: EducationLevel.UNDERGRADUATE,
     featured: true,
     verified: true,
+    skills: ["General Studies"],
+    interests: ["Financial Aid"],
+    careerTags: ["Higher Education Student"],
   },
 
   {
@@ -149,5 +164,8 @@ export const scholarships: SeedOpportunity[] = [
     educationLevel: EducationLevel.SCHOOL,
     featured: true,
     verified: true,
+    skills: ["General Aptitude"],
+    interests: ["School Education"],
+    careerTags: ["School Student"],
   },
 ];

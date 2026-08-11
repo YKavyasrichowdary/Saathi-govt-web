@@ -43,4 +43,16 @@ export interface SeedOpportunity {
   featured?: boolean;
 
   verified?: boolean;
+
+  officialId?: string;
+
+  startDate?: Date;
+
+  endDate?: Date;
+
+  skills?: string[];
+
+  interests?: string[];
+
+  careerTags?: string[];
 }

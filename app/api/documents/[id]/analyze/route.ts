@@ -73,25 +73,10 @@ export async function POST(
       );
     }
 
-    const signedUrl =
-      await storageService.getSignedUrl(
+    const buffer =
+      await storageService.getFileBuffer(
         document.fileUrl
       );
-
-    const pdfResponse =
-      await fetch(signedUrl);
-
-    if (!pdfResponse.ok) {
-      throw new Error(
-        "Unable to download the resume."
-      );
-    }
-
-    const arrayBuffer =
-      await pdfResponse.arrayBuffer();
-
-    const buffer =
-      Buffer.from(arrayBuffer);
 
     const resumeText =
       await resumeParserService.extractText(

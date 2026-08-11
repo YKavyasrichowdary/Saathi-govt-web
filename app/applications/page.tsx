@@ -48,7 +48,7 @@ export default async function ApplicationsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {applications.map((application) => (
+          {applications.map((application: any) => (
             <div
               key={application.id}
               className="surface-card p-6 rounded-2xl"

@@ -2,11 +2,13 @@
 
 import ProfileCompletionCard from "./ProfileCompletionCard";
 
+interface ProfileCompletion {
+  percentage: number;
+  remaining: string[];
+}
+
 interface ProfileCompletionProps {
-  completion: {
-    percentage: number;
-    remaining: string[];
-  };
+  completion: ProfileCompletion;
 }
 
 export default function ProfileCompletion({

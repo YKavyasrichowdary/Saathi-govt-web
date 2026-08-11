@@ -14,7 +14,7 @@ export default async function InternshipsPage() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {opportunities.map((opp) => (
+      {opportunities.map((opp: any) => (
         <OpportunityCard
           key={opp.id}
           opportunity={opp}
