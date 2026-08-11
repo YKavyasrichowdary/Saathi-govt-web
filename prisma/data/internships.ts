@@ -32,6 +32,9 @@ export const internships: SeedOpportunity[] = [
     course: "Computer Science",
     featured: true,
     verified: true,
+    skills: ["Data Structures", "Algorithms", "C++", "Java", "Python"],
+    interests: ["Software Engineering", "Web Development"],
+    careerTags: ["Software Engineer", "Backend Developer"],
   },
 
   {
@@ -56,6 +59,9 @@ export const internships: SeedOpportunity[] = [
     educationLevel: EducationLevel.UNDERGRADUATE,
     featured: true,
     verified: true,
+    skills: ["Software Engineering", "C#", "TypeScript", "Problem Solving"],
+    interests: ["Software Engineering", "Product Management"],
+    careerTags: ["Software Engineer", "Program Manager"],
   },
 
   {
@@ -80,6 +86,9 @@ export const internships: SeedOpportunity[] = [
     educationLevel: EducationLevel.UNDERGRADUATE,
     course: "Computer Science",
     verified: true,
+    skills: ["Java", "Distributed Systems", "AWS", "Data Structures"],
+    interests: ["Backend Development", "Cloud Systems"],
+    careerTags: ["Software Development Engineer"],
   },
 
   {
@@ -103,6 +112,9 @@ export const internships: SeedOpportunity[] = [
     deadline: new Date("2026-08-20"),
     educationLevel: EducationLevel.UNDERGRADUATE,
     verified: true,
+    skills: ["Aerospace Engineering", "Embedded Systems", "MATLAB", "Physics"],
+    interests: ["Space Technology", "Research"],
+    careerTags: ["Aerospace Researcher", "Embedded Systems Engineer"],
   },
 
   {
@@ -126,6 +138,9 @@ export const internships: SeedOpportunity[] = [
     deadline: new Date("2026-08-10"),
     educationLevel: EducationLevel.UNDERGRADUATE,
     verified: true,
+    skills: ["Electronics", "Signal Processing", "C++", "Robotics"],
+    interests: ["Defence Tech", "Robotics", "Research"],
+    careerTags: ["Defence Scientist", "Electronics Engineer"],
   },
 
   {
@@ -150,5 +165,8 @@ export const internships: SeedOpportunity[] = [
     educationLevel: EducationLevel.UNDERGRADUATE,
     featured: true,
     verified: true,
+    skills: ["Full Stack Development", "React", "Node.js", "SQL"],
+    interests: ["Software Engineering", "Digital Solutions"],
+    careerTags: ["Full Stack Engineer"],
   },
 ];

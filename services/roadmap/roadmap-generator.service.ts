@@ -1,54 +1,41 @@
 import prisma from "@/lib/prisma";
-
 import { gemini } from "@/lib/ai/gemini";
-
 import repository from "@/repositories/roadmap/roadmap.repository";
-
+import opportunityMatchRepository from "@/repositories/opportunity-match/opportunity-match.repository";
 import { buildRoadmapPrompt } from "@/lib/ai/roadmap-prompt";
-
 import { roadmapSchema } from "@/lib/validations/roadmap-schema";
-
 import { parseAIJson } from "@/lib/ai/parser";
+import { validateRoadmapCapacity } from "@/lib/ai/roadmap-validator";
+import { scheduleTasks } from "@/lib/roadmap/task-scheduler";
 
-interface GenerateRoadmapInput {
-
+export interface GenerateRoadmapInput {
   userId: string;
-
   opportunityId: string;
-
   dailyHours: number;
-
-  confidence:
-    | "BEGINNER"
-    | "INTERMEDIATE"
-    | "ADVANCED";
-
-  goal:
-    | "QUALIFY"
-    | "COMPETITIVE";
-
-  preferredStudyTime:
-    | "MORNING"
-    | "AFTERNOON"
-    | "EVENING"
-    | "NIGHT";
-
+  confidence: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  goal: "QUALIFY" | "COMPETITIVE";
+  preferredStudyTime: "MORNING" | "AFTERNOON" | "EVENING" | "NIGHT";
+  targetDate: string;
 }
 
 class RoadmapGeneratorService {
+  async generateRoadmap(input: GenerateRoadmapInput) {
+    // Step 2 — Calculate available days & hard validation
+    const today = new Date();
+    const targetDate = new Date(input.targetDate);
+    const availableDays = Math.max(
+      0,
+      Math.ceil(
+        (targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      )
+    );
 
-  async generateRoadmap(
-    input: GenerateRoadmapInput
-  ) {
+    if (availableDays <= 0) {
+      throw new Error("Target date must be in the future.");
+    }
 
-    // Step 2 — Fetch Required Data
-    const [
-      user,
-      profile,
-      resume,
-      opportunity,
-    ] = await Promise.all([
-
+    // Step 3 — Fetch Required Data
+    const [user, profile, resume, opportunity, opportunityMatch] = await Promise.all([
       prisma.user.findUnique({
         where: {
           id: input.userId,
@@ -81,8 +68,13 @@ class RoadmapGeneratorService {
         },
       }),
 
+      opportunityMatchRepository.getByUserAndOpportunity(
+        input.userId,
+        input.opportunityId
+      ),
     ]);
 
+    // Step 4 — Validation
     if (!user) {
       throw new Error("User not found.");
     }
@@ -92,19 +84,43 @@ class RoadmapGeneratorService {
     }
 
     if (!resume) {
-      throw new Error(
-        "Resume analysis not found."
-      );
+      throw new Error("Resume analysis not found.");
     }
 
     if (!opportunity) {
+      throw new Error("Opportunity not found.");
+    }
+
+    if (!opportunityMatch) {
       throw new Error(
-        "Opportunity not found."
+        "Opportunity match analysis not found. Analyze your match before creating a roadmap."
       );
     }
 
-    // Step 3 — Build AI Context
+    // Step 5 — Add Match + Deadline to AI Context
     const aiContext = {
+      match: {
+        matchScore: opportunityMatch.matchScore,
+        readinessScore: opportunityMatch.readinessScore,
+        strengths: opportunityMatch.strengths,
+        missingSkills: opportunityMatch.missingSkills,
+        recommendations: opportunityMatch.recommendations,
+        summary: opportunityMatch.summary,
+      },
+
+      preparation: {
+        targetDate: input.targetDate,
+        availableDays,
+        dailyHours: input.dailyHours,
+        maxPreparationMinutes:
+          availableDays *
+          input.dailyHours *
+          60,
+        confidence: input.confidence,
+        goal: input.goal,
+        preferredStudyTime: input.preferredStudyTime,
+      },
+
       student: {
         course: profile.course,
         branch: profile.specialization,
@@ -123,24 +139,9 @@ class RoadmapGeneratorService {
         improvements: resume.improvements,
       },
 
-      skills: profile.skills.map(
-        (skill) => skill.name
-      ),
-
-      interests: profile.interests.map(
-        (interest) => interest.name
-      ),
-
-      careerGoals: profile.careerGoals.map(
-        (goal) => goal.title
-      ),
-
-      preferences: {
-        dailyHours: input.dailyHours,
-        confidence: input.confidence,
-        goal: input.goal,
-        preferredStudyTime: input.preferredStudyTime,
-      },
+      skills: profile.skills.map((skill: { name: string }) => skill.name),
+      interests: profile.interests.map((interest: { name: string }) => interest.name),
+      careerGoals: profile.careerGoals.map((goal: { title: string }) => goal.title),
 
       opportunity: {
         title: opportunity.title,
@@ -150,16 +151,15 @@ class RoadmapGeneratorService {
       },
     };
 
-    // Step 4 — Build Prompt
+    // Step 6 — Build Prompt
     const prompt = buildRoadmapPrompt(aiContext);
 
-    // Step 5 — Gemini (with Try/Catch)
+    // Gemini Call
     let response;
 
     try {
-
       response = await gemini.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-flash-latest",
         contents: [
           {
             role: "user",
@@ -171,33 +171,58 @@ class RoadmapGeneratorService {
           },
         ],
       });
-
     } catch (error) {
-
-      console.error(
-        "Roadmap Generation Error",
-        error
-      );
-
-      throw new Error(
-        "Failed to generate AI roadmap."
-      );
-
+      console.error("Roadmap Generation Error", error);
+      throw new Error("Failed to generate AI roadmap.");
     }
 
-    // Step 6 — Parse & Validate
+    // Parse & Validate
     const parsed = parseAIJson(response.text ?? "");
     const roadmap = roadmapSchema.parse(parsed);
 
-    // Step 7 — Save Using Nested Create (O(N) index mapping)
+    const capacity =
+      validateRoadmapCapacity({
+        roadmap,
+        availableDays,
+        dailyHours: input.dailyHours,
+      });
+
+    const generatedTasks = roadmap.milestones.flatMap(
+      (milestone) => milestone.tasks
+    );
+
+    const scheduledTasks = scheduleTasks({
+      tasks: generatedTasks,
+      availableDays,
+      dailyHours: input.dailyHours,
+    });
+
+    let taskIndex = 0;
+
+    const milestones = roadmap.milestones.map((milestone) => ({
+      ...milestone,
+      tasks: milestone.tasks.map((task) => {
+        const scheduled = scheduledTasks[taskIndex];
+        taskIndex += 1;
+        return {
+          ...task,
+          estimatedMinutes: scheduled.estimatedMinutes,
+          dayNumber: scheduled.dayNumber,
+        };
+      }),
+    }));
+
+    // Save Using Nested Create
     const savedRoadmap = await repository.createRoadmap({
       title: roadmap.title,
       description: roadmap.description,
       readinessScore: roadmap.readinessScore,
       targetScore: roadmap.targetScore,
-      estimatedDays: roadmap.estimatedDays,
+      estimatedDays: availableDays,
+      dailyHours: input.dailyHours,
+      targetDate: new Date(input.targetDate),
       aiSummary: roadmap.summary,
-      generatedBy: "gemini-2.5-flash",
+      generatedBy: "gemini-flash-latest",
 
       user: {
         connect: {
@@ -212,17 +237,18 @@ class RoadmapGeneratorService {
       },
 
       milestones: {
-        create: roadmap.milestones.map((milestone, milestoneIndex) => ({
+        create: milestones.map((milestone, milestoneIndex) => ({
           title: milestone.title,
           description: milestone.description,
           order: milestoneIndex + 1,
           tasks: {
-            create: milestone.tasks.map((task, taskIndex) => ({
+            create: milestone.tasks.map((task, index) => ({
               title: task.title,
               description: task.description,
               estimatedMinutes: task.estimatedMinutes,
               rewardXP: task.rewardXP,
-              order: taskIndex + 1,
+              order: index + 1,
+              dayNumber: task.dayNumber,
             })),
           },
         })),

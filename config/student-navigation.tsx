@@ -45,6 +45,12 @@ export const studentNavigation: NavItem[] = [
     group: "Work",
   },
   {
+    href: "/roadmap",
+    label: "Roadmaps",
+    icon: "Route",
+    group: "Work",
+  },
+  {
     href: "/mock-tests",
     label: "Mock Tests",
     icon: "Trophy",

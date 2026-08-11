@@ -2,6 +2,8 @@
 
 import TaskItem from "./TaskItem";
 
+import EmptyState from "@/components/common/EmptyState";
+
 export interface TodayTask {
   id: string;
   title: string;
@@ -21,11 +23,12 @@ export default function TodayTasks({ tasks }: TodayTasksProps) {
   if (!tasks || tasks.length === 0) {
     return (
       <div className="surface-card rounded-3xl border border-border p-6">
-        <h2 className="text-xl font-bold">Today's Tasks</h2>
+        <h2 className="text-xl font-bold mb-4">Today's Tasks</h2>
 
-        <p className="mt-6 text-center text-muted-foreground">
-          No tasks for today. 🎉
-        </p>
+        <EmptyState
+          title="No Tasks Today"
+          description="You're all caught up! Check back tomorrow for new missions."
+        />
       </div>
     );
   }

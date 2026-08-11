@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 
 import roadmapService from "@/services/roadmap/roadmap.service";
+import { AppShell } from "@/components/AppShell";
 
 import RoadmapHero from "@/components/roadmap/RoadmapHero";
 import ReadinessGauge from "@/components/roadmap/ReadinessGauge";
 import AIInsights from "@/components/roadmap/AIInsights";
 import TodayMissionCard from "@/components/roadmap/TodayMissionCard";
+import TodayPlan from "@/components/roadmap/TodayPlan";
 import MilestoneTimeline from "@/components/roadmap/MilestoneTimeline";
 import TaskChecklist from "@/components/roadmap/TaskChecklist";
 
@@ -21,112 +23,123 @@ export default async function RoadmapPage({
 
   const { id } = await params;
 
-  let roadmap;
+  let roadmapView;
   try {
-    roadmap = await roadmapService.getRoadmap(id);
+    roadmapView = await roadmapService.getRoadmapView(id);
   } catch {
     notFound();
   }
 
-  // 🚀 Sprint 45.4 — Today's Mission
-  const nextTask =
-    roadmap.milestones
-      .flatMap((m) => m.tasks)
-      .find(
-        (task) => task.status !== "COMPLETED"
-      );
-
-  // Derive milestone status for timeline and active milestone selection
-  const milestonesWithStatus = roadmap.milestones.map((m) => {
-    const allTasksCompleted =
-      m.tasks.length > 0 && m.tasks.every((t) => t.status === "COMPLETED");
-    const anyTaskStarted =
-      m.tasks.some((t) => t.status === "COMPLETED" || t.status === "IN_PROGRESS");
-    const status: "COMPLETED" | "IN_PROGRESS" | "PENDING" = allTasksCompleted
-      ? "COMPLETED"
-      : anyTaskStarted
-      ? "IN_PROGRESS"
-      : "PENDING";
-
-    return {
-      id: m.id,
-      title: m.title,
-      description: m.description ?? "",
-      status,
-      tasks: m.tasks,
-    };
-  });
-
-  // 🚀 Sprint 45.6 — Checklist
-  const currentMilestone =
-    milestonesWithStatus.find(
-      (m) => m.status === "IN_PROGRESS"
-    ) ?? milestonesWithStatus[0];
-
-  const checklistTasks = currentMilestone
-    ? currentMilestone.tasks.map((t) => ({
-        id: t.id,
-        title: t.title,
-        estimatedMinutes: t.estimatedMinutes,
-        completed: t.status === "COMPLETED",
-      }))
-    : [];
+  const {
+    roadmap,
+    match,
+    nextTask,
+    currentMilestone,
+    milestones,
+    checklistTasks,
+    todayPlan,
+  } = roadmapView;
 
   return (
-    <div className="space-y-8">
+    <AppShell
+      title={roadmap.title}
+      subtitle="AI Execution Roadmap"
+    >
+      <div className="space-y-8">
 
-      <RoadmapHero
-        title={roadmap.title}
-        readinessScore={roadmap.readinessScore}
-        targetScore={roadmap.targetScore}
-        estimatedDays={roadmap.estimatedDays}
-      />
-
-      <ReadinessGauge
-        readinessScore={roadmap.readinessScore}
-        targetScore={roadmap.targetScore}
-      />
-
-      <AIInsights
-        summary={roadmap.aiSummary ?? ""}
-        strengths={[
-          "React",
-          "Frontend",
-        ]}
-        improvements={[
-          "DSA",
-          "SQL",
-        ]}
-      />
-
-      <TodayMissionCard
-        title={
-          nextTask?.title ??
-          "All missions completed 🎉"
-        }
-        description={
-          nextTask?.description ??
-          "You're all caught up."
-        }
-        estimatedMinutes={
-          nextTask?.estimatedMinutes ?? 0
-        }
-        rewardXP={
-          nextTask?.rewardXP ?? 0
-        }
-      />
-
-      <MilestoneTimeline
-        milestones={milestonesWithStatus}
-      />
-
-      {currentMilestone && (
-        <TaskChecklist
-          title={currentMilestone.title}
-          tasks={checklistTasks}
+        <RoadmapHero
+          title={roadmap.title}
+          readinessScore={roadmap.readinessScore}
+          targetScore={roadmap.targetScore}
+          estimatedDays={roadmap.estimatedDays}
         />
-      )}
 
-    </div>
+        <ReadinessGauge
+          readinessScore={roadmap.readinessScore}
+          targetScore={roadmap.targetScore}
+        />
+
+        <div className="surface-card rounded-3xl border border-border p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Roadmap Progress
+              </p>
+
+              <p className="mt-1 text-2xl font-bold">
+                {roadmap.progress}%
+              </p>
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              Task completion
+            </p>
+          </div>
+
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500"
+              style={{
+                width: `${roadmap.progress}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        <AIInsights
+          summary={
+            match?.summary ??
+            roadmap.aiSummary ??
+            ""
+          }
+          strengths={
+            match?.strengths ?? []
+          }
+          improvements={
+            match?.missingSkills ?? []
+          }
+        />
+
+        {todayPlan && (
+          <TodayPlan
+            dayNumber={todayPlan.dayNumber}
+            date={todayPlan.date}
+            tasks={todayPlan.tasks}
+            dailyCapacity={roadmap.dailyHours * 60}
+          />
+        )}
+
+        <TodayMissionCard
+          title={
+            nextTask?.title ??
+            "All missions completed 🎉"
+          }
+          description={
+            nextTask?.description ??
+            "You're all caught up."
+          }
+          estimatedMinutes={
+            nextTask?.estimatedMinutes ?? 0
+          }
+          rewardXP={
+            nextTask?.rewardXP ?? 0
+          }
+        />
+
+        <MilestoneTimeline
+          milestones={milestones}
+        />
+
+        {currentMilestone && (
+          <TaskChecklist
+            key={currentMilestone.id}
+            title={currentMilestone.title}
+            tasks={checklistTasks}
+          />
+        )}
+
+
+      </div>
+    </AppShell>
   );
 }

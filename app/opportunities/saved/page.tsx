@@ -11,7 +11,7 @@ export default async function SavedOpportunitiesPage() {
   }
 
   const savedItems = await savedOpportunityService.getSavedByUser(session.user.id);
-  const opportunities = savedItems.map((item) => item.opportunity);
+  const opportunities = savedItems.map((item: any) => item.opportunity);
 
   return (
     <OpportunityGrid opportunities={opportunities} />

@@ -29,7 +29,7 @@ class RecommendationService {
       return [];
     }
 
-    const recommendations = opportunities.map((opportunity) => {
+    const recommendations = opportunities.map((opportunity: any) => {
       let earned = 0;
       let possible = 0;
 
@@ -208,11 +208,11 @@ ${opportunity.organization}
     });
 
     const sorted = recommendations.sort(
-      (a, b) => b.matchScore - a.matchScore
+      (a: any, b: any) => b.matchScore - a.matchScore
     );
 
     const enhancedRecommendations = sorted.map(
-      (recommendation) => ({
+      (recommendation: any) => ({
         ...recommendation,
 
         analysis: analyzeRecommendation(

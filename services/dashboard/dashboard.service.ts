@@ -50,7 +50,7 @@ class DashboardService {
       LOW: "Low",
     };
 
-    const todayTasks = userMissions.map((m) => {
+    const todayTasks = userMissions.map((m: any) => {
       let rewardStr = "+10 XP";
       if (m.rewardResumeScore) rewardStr = `+${m.rewardResumeScore} Resume Score`;
       else if (m.rewardProfileScore) rewardStr = `+${m.rewardProfileScore} Profile Score`;
@@ -88,12 +88,12 @@ class DashboardService {
     if (profile?.phone || profile?.city) completionPercentage += PROFILE_RULES.contact;
     else remaining.push("Add Contact Information");
 
-    if (remaining.length === 0) {
-      remaining.push("Profile Fully Optimized!");
+    if (completionPercentage > 100) {
+      completionPercentage = 100;
     }
 
     const profileCompletion = {
-      percentage: Math.min(100, completionPercentage),
+      percentage: completionPercentage,
       remaining,
     };
 
@@ -132,14 +132,19 @@ class DashboardService {
 
       profileCompletion,
 
-      recommendations: saved.map((item) => ({
+      recommendations: saved.map((item: any) => ({
         id: item.opportunity.id,
         title: item.opportunity.title,
         organization: item.opportunity.organization,
         deadline: item.opportunity.deadline,
       })),
 
-      activity,
+      activity: activity.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        message: item.message,
+        createdAt: item.createdAt,
+      })),
 
       insights,
     };

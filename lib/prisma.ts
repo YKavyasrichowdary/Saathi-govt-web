@@ -1,8 +1,14 @@
-import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 const prismaClientSingleton = () => {
+  try {
+    delete require.cache[require.resolve("@prisma/client")];
+    delete require.cache[require.resolve("@prisma/client/index.js")];
+  } catch {}
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaClient } = require("@prisma/client");
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
   });
@@ -10,14 +16,23 @@ const prismaClientSingleton = () => {
   return new PrismaClient({ adapter });
 };
 
-declare const globalThis: {
-  prismaGlobal?: ReturnType<typeof prismaClientSingleton>;
-} & typeof global;
+type ExtendedGlobal = typeof globalThis & {
+  prismaGlobal?: any;
+};
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+const getPrismaClient = () => {
+  const g = globalThis as ExtendedGlobal;
+  if (!g.prismaGlobal || !("opportunityMatch" in g.prismaGlobal)) {
+    g.prismaGlobal = prismaClientSingleton();
+  }
+  return g.prismaGlobal;
+};
+
+// Force reset cached client during development when schema changes
+if (process.env.NODE_ENV !== "production") {
+  (globalThis as ExtendedGlobal).prismaGlobal = prismaClientSingleton();
+}
+
+const prisma = (globalThis as ExtendedGlobal).prismaGlobal || getPrismaClient();
 
 export default prisma;
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobal = prisma;
-}

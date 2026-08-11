@@ -132,7 +132,7 @@ async updateMilestoneStatus(
 
   const completed =
     milestone.tasks.filter(
-      (task) =>
+      (task: { status: string }) =>
         task.status === "COMPLETED"
     ).length;
 
@@ -229,7 +229,7 @@ async updateMilestoneStatus(
 
   const tasks =
     roadmap.milestones.flatMap(
-      (milestone) => milestone.tasks
+      (milestone: { tasks: any[] }) => milestone.tasks
     );
 
   if (tasks.length === 0) {
@@ -238,7 +238,7 @@ async updateMilestoneStatus(
 
   const completedTasks =
     tasks.filter(
-      (task) =>
+      (task: { status: string }) =>
         task.status === "COMPLETED"
     ).length;
 
@@ -255,14 +255,52 @@ async updateMilestoneStatus(
 
     data: {
 
-      readinessScore: progress,
+      progress,
 
-    },
+    } as any,
 
   });
 
 }
 
+  async getUserRoadmaps(userId: string) {
+    return prisma.roadmap.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        opportunity: true,
+        milestones: {
+          include: {
+            tasks: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  async getRoadmapByOpportunity(userId: string, opportunityId: string) {
+    return prisma.roadmap.findFirst({
+      where: {
+        userId,
+        opportunityId,
+      },
+      include: {
+        opportunity: true,
+        milestones: {
+          include: {
+            tasks: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
 }
 
 export default new RoadmapRepository();

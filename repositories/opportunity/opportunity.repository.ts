@@ -78,6 +78,17 @@ class OpportunityRepository {
     });
   }
 
+  async getByIdOrSlug(identifier: string) {
+    return prisma.opportunity.findFirst({
+      where: {
+        OR: [
+          { id: identifier },
+          { slug: identifier },
+        ],
+      },
+    });
+  }
+
   async getAll(sort?: string) {
     let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
 

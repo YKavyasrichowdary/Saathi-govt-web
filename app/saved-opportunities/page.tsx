@@ -20,7 +20,7 @@ export default async function SavedOpportunitiesPage() {
     );
 
   const opportunities = saved.map(
-    (item) => item.opportunity
+    (item: any) => item.opportunity
   );
 
   return (
