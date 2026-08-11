@@ -22,7 +22,6 @@ interface Props {
     fileSize: number;
     mimeType?: string;
     type?: string;
-    verified: boolean;
     createdAt?: string | Date;
   };
 }
@@ -142,14 +141,6 @@ export default function DocumentCard({
   }
 }
 
-  const status = document.verified ? "Verified" : "Pending";
-
-  const badgeStyles: Record<string, string> = {
-    Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-    Verified: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    Rejected: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    Expired: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-  };
 
   return (
     <div className="surface-card rounded-2xl p-6 transition-all hover:shadow-md border border-border">
@@ -176,14 +167,6 @@ export default function DocumentCard({
           </p>
 
         </div>
-
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-medium shrink-0 ${
-            badgeStyles[status] || badgeStyles.Pending
-          }`}
-        >
-          {status === "Verified" ? "🟢 Verified" : "🟡 Pending"}
-        </span>
 
       </div>
 

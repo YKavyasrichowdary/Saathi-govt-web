@@ -61,7 +61,7 @@ function summarizeDocuments(documents: any[]) {
   return documents
     .map(
       (d) =>
-        `${d.title ?? d.fileName ?? "Document"} (${d.verified ? "Verified" : "Pending"})`
+        `${d.title ?? d.fileName ?? "Document"}`
     )
     .join("\n");
 }
