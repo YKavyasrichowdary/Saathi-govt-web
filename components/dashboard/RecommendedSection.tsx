@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import OpportunityCard, { OpportunityItem } from "./OpportunityCard";
 import EmptyState from "@/components/common/EmptyState";
 
@@ -40,19 +41,24 @@ export default function RecommendedSection({
           </p>
         </div>
 
-        <button className="btn-secondary">View All</button>
+        <Link href="/recommendations" className="btn-secondary">
+          View All
+        </Link>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {opportunities.map((item, index) => (
           <OpportunityCard
             key={item.id || index}
+            id={item.id}
             title={item.title}
             organization={item.organization}
-            match={item.match}
+            matchScore={item.matchScore}
             deadline={item.deadline}
             mode={item.mode}
             reasons={item.reasons}
+            isSaved={item.isSaved}
+            slug={item.slug}
           />
         ))}
       </div>

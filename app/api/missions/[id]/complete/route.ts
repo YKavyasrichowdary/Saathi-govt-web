@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import missionCompletionService from "@/services/mission/mission-completion.service";
-import progressService from "@/services/progress/progress.service";
+import missionService from "@/services/mission/mission.service";
 
 interface Params {
   params: Promise<{
@@ -31,14 +30,11 @@ export async function POST(
 
     const { id } = await params;
 
-    await progressService.completeMission(
-    id,
-    session.user.id,
-    50
-);;
+    const result = await missionService.completeMission(id, session.user.id);
 
     return NextResponse.json({
       success: true,
+      data: result,
     });
 
   } catch (error) {

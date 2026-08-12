@@ -3,7 +3,9 @@ import {
   MissionPriority,
   MissionStatus,
 } from "@prisma/client";
-
+import xpService from "@/services/progress/xp.service";
+import activityService from "@/services/progress/activity.service";
+import streakService from "@/services/progress/streak.service";
 import repository from "@/repositories/mission/mission.repository";
 import orchestrator from "./mission-orchestrator.service";
 
@@ -23,6 +25,10 @@ class MissionService {
     return repository.create(data);
   }
 
+  async getTodayMissions(userId: string) {
+  return repository.getTodayMissions(userId);
+}
+
   async getCurrentMission(userId: string) {
     return orchestrator.getOrCreateMission(userId);
   }
@@ -31,15 +37,39 @@ class MissionService {
     return repository.getAll(userId);
   }
 
-async completeMission(id: string) {
-  return repository.completeMission(id);
-}
+  async completeMission(
+    id: string,
+    userId: string
+  ) {
+    const mission =
+      await repository.completeMission(
+        id,
+        userId
+      );
+
+    if (mission.status === "COMPLETED") {
+      await activityService.recordActivity(
+        userId
+      );
+    }
+
+    return mission;
+  }
 
   async startMission(id: string) {
-    return repository.updateStatus(
-      id,
-      MissionStatus.IN_PROGRESS
-    );
+    const mission =
+      await repository.updateStatus(
+        id,
+        MissionStatus.IN_PROGRESS
+      );
+
+    if (mission?.userId) {
+      await activityService.recordActivity(
+        mission.userId
+      );
+    }
+
+    return mission;
   }
 
   async getMission(id: string) {

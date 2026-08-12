@@ -32,6 +32,7 @@ model User {
   savedOpportunities    SavedOpportunity[]
   sessions              Session[]
   xp                    UserXP?
+  activityDays          UserActivityDay[]
 }
 
 model Account {
@@ -549,4 +550,15 @@ enum MilestoneStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
+}
+
+model UserActivityDay {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
 }

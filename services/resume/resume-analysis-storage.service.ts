@@ -1,4 +1,5 @@
 import resumeAnalysisRepository from "@/repositories/resume/resume-analysis.repository";
+import activityService from "@/services/progress/activity.service";
 import { ResumeAnalysis } from "@/types/resume";
 import prisma from "@/lib/prisma";
 
@@ -15,7 +16,7 @@ class ResumeAnalysisStorageService {
 
     const version = latest ? latest.version + 1 : 1;
 
-    return resumeAnalysisRepository.create({
+    const saved = await resumeAnalysisRepository.create({
       user: {
         connect: {
           id: params.userId,
@@ -46,6 +47,10 @@ class ResumeAnalysisStorageService {
 
       aiModel: "gemini-2.5-flash",
     });
+
+    await activityService.recordActivity(params.userId);
+
+    return saved;
   }
 
   async getAnalysis(id: string) {

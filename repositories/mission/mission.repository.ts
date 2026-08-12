@@ -27,28 +27,71 @@ class MissionRepository {
     });
   }
 
-  async getTodayMission(userId: string) {
-    return prisma.mission.findFirst({
+  async getTodayMissions(userId: string) {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    return prisma.mission.findMany({
       where: {
         userId,
-        status: {
-          in: [
-            MissionStatus.PENDING,
-            MissionStatus.IN_PROGRESS,
-          ],
-        },
+        OR: [
+          {
+            createdAt: {
+              gte: start,
+              lte: end,
+            },
+          },
+          {
+            completedAt: {
+              gte: start,
+              lte: end,
+            },
+          },
+        ],
       },
-      orderBy: [
-        {
-          priority: "desc",
-        },
-        {
-          createdAt: "asc",
-        },
-      ],
+      orderBy: {
+        createdAt: "asc",
+      },
     });
   }
 
+  async getTodayMission(userId: string) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  return prisma.mission.findFirst({
+    where: {
+      userId,
+
+      status: {
+        in: [
+          MissionStatus.PENDING,
+          MissionStatus.IN_PROGRESS,
+        ],
+      },
+
+      createdAt: {
+        gte: start,
+        lte: end,
+      },
+    },
+
+    orderBy: [
+      {
+        priority: "desc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
+  });
+}
   async getAll(userId: string) {
     return prisma.mission.findMany({
       where: {
@@ -85,17 +128,48 @@ class MissionRepository {
       },
     });
   }
-  async completeMission(id: string) {
-    return prisma.mission.update({
+async completeMission(
+  id: string,
+  userId: string
+) {
+  const mission =
+    await prisma.mission.findUnique({
       where: {
         id,
       },
-      data: {
-        status: "COMPLETED",
-        completedAt: new Date(),
+      select: {
+        id: true,
+        userId: true,
+        status: true,
+      },
+    });
+
+  if (!mission) {
+    throw new Error("Mission not found.");
+  }
+
+  if (mission.userId !== userId) {
+    throw new Error("Unauthorized.");
+  }
+
+  if (mission.status === "COMPLETED") {
+    return prisma.mission.findUnique({
+      where: {
+        id,
       },
     });
   }
+
+  return prisma.mission.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "COMPLETED",
+      completedAt: new Date(),
+    },
+  });
+}
 
   async getMission(id: string) {
     return prisma.mission.findUnique({

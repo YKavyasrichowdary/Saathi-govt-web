@@ -52,7 +52,7 @@ class MissionGeneratorService {
      * Rule 1
      */
 
-    if (documents === 0) {
+    if (documents === 0 && !latestResume) {
       return {
         title: "Upload Your Resume",
         description:

@@ -33,6 +33,7 @@ export default async function DashboardPage() {
               greeting={dashboard.hero.greeting}
               name={dashboard.hero.name}
               mission={dashboard.mission}
+              readinessScore={dashboard.hero.readinessScore}
             />
           }
           tasks={<TodayTasks tasks={dashboard.todayTasks} />}

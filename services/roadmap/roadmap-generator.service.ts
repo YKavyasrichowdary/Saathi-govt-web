@@ -8,6 +8,7 @@ import { parseAIJson } from "@/lib/ai/parser";
 import { validateRoadmapCapacity } from "@/lib/ai/roadmap-validator";
 import { scheduleTasks } from "@/lib/roadmap/task-scheduler";
 import opportunityMatchService from "@/services/opportunity-match/opportunity-match.service";
+import activityService from "@/services/progress/activity.service";
 
 
 export interface GenerateRoadmapInput {
@@ -259,6 +260,8 @@ class RoadmapGeneratorService {
         })),
       },
     });
+
+    await activityService.recordActivity(input.userId);
 
     return savedRoadmap;
   }

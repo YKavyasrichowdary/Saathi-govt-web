@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
 import TaskItem from "./TaskItem";
 
 import EmptyState from "@/components/common/EmptyState";
@@ -19,8 +21,49 @@ interface TodayTasksProps {
   tasks: TodayTask[];
 }
 
-export default function TodayTasks({ tasks }: TodayTasksProps) {
-  if (!tasks || tasks.length === 0) {
+export default function TodayTasks({ tasks: initialTasks }: TodayTasksProps) {
+  const [taskList, setTaskList] = useState<TodayTask[]>(initialTasks ?? []);
+  const [completingId, setCompletingId] = useState<string | null>(null);
+
+  async function completeTask(id: string) {
+    if (completingId) return;
+
+    setCompletingId(id);
+
+    try {
+      const res = await fetch("/api/missions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          missionId: id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data.message || "Failed to complete task."
+        );
+      }
+
+      toast.success("Today's task completed! 🔥");
+
+      window.location.reload();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to complete task."
+      );
+    } finally {
+      setCompletingId(null);
+    }
+  }
+
+  if (!taskList || taskList.length === 0) {
     return (
       <div className="surface-card rounded-3xl border border-border p-6">
         <h2 className="text-xl font-bold mb-4">Today's Tasks</h2>
@@ -33,10 +76,10 @@ export default function TodayTasks({ tasks }: TodayTasksProps) {
     );
   }
 
-  const completedCount = tasks.filter((t) => t.completed).length;
-  const totalCount = tasks.length;
+  const completedCount = taskList.filter((t) => t.completed).length;
+  const totalCount = taskList.length;
 
-  const orderedTasks = [...tasks].sort((a, b) => {
+  const orderedTasks = [...taskList].sort((a, b) => {
     if (a.completed === b.completed) return 0;
     return a.completed ? 1 : -1;
   });
@@ -67,12 +110,15 @@ export default function TodayTasks({ tasks }: TodayTasksProps) {
           return (
             <TaskItem
               key={task.id}
+              id={task.id}
               title={task.title}
               description={task.description}
               duration={formattedDuration}
               reward={task.reward}
               completed={task.completed}
               priority={task.priority}
+              onComplete={completeTask}
+              completing={completingId === task.id}
             />
           );
         })}

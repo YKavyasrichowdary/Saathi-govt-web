@@ -1,15 +1,10 @@
 import repository from "@/repositories/dashboard/dashboard.repository";
 import missionService from "@/services/mission/mission.service";
+import recommendationService from "@/services/recommendation/recommendation.service";
+import activityService from "@/services/progress/activity.service";
 import dashboardInsightsService from "./dashboard-insights.service";
+import { calculateProfileCompletion } from "@/lib/profile/completion";
 import { DashboardData } from "@/types/dashboard";
-
-const PROFILE_RULES = {
-  base: 30,
-  basic: 20,
-  resume: 25,
-  education: 15,
-  contact: 10,
-};
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -20,28 +15,34 @@ function getGreeting(): string {
 
 class DashboardService {
   async getDashboard(userId: string): Promise<DashboardData> {
+    const mission = await missionService.getCurrentMission(userId);
+
     const [
       user,
-      mission,
       stats,
       resume,
       activity,
       saved,
       userXP,
-      userMissions,
+      todayMissions,
       profile,
       streakHistory,
+      recommendations,
+      currentStreak,
+      longestStreak,
     ] = await Promise.all([
       repository.getUser(userId),
-      missionService.getCurrentMission(userId),
       repository.getQuickStats(userId),
       repository.getLatestResume(userId),
       repository.getRecentActivity(userId),
       repository.getSavedOpportunities(userId),
       repository.getUserXP(userId),
-      repository.getUserMissions(userId),
+      missionService.getTodayMissions(userId),
       repository.getUserProfile(userId),
       repository.getStreakHistory(userId),
+      recommendationService.getRecommendations(userId),
+      activityService.getCurrentStreak(userId),
+      activityService.getLongestStreak(userId),
     ]);
 
     const priorityMap: Record<string, "High" | "Medium" | "Low"> = {
@@ -50,7 +51,7 @@ class DashboardService {
       LOW: "Low",
     };
 
-    const todayTasks = userMissions.map((m: any) => {
+    const todayTasks = todayMissions.map((m: any) => {
       let rewardStr = "+10 XP";
       if (m.rewardResumeScore) rewardStr = `+${m.rewardResumeScore} Resume Score`;
       else if (m.rewardProfileScore) rewardStr = `+${m.rewardProfileScore} Profile Score`;
@@ -68,28 +69,53 @@ class DashboardService {
     });
 
     const streak = {
-      currentStreak: userXP?.currentStreak ?? 0,
-      longestStreak: userXP?.longestStreak ?? 0,
+      currentStreak,
+      longestStreak,
       days: streakHistory,
     };
 
+    const completionPercentage = calculateProfileCompletion(profile);
+
     const remaining: string[] = [];
-    let completionPercentage = PROFILE_RULES.base;
 
-    if (user?.name && user?.email) completionPercentage += PROFILE_RULES.basic;
-    else remaining.push("Complete Basic Details");
+    if (!profile?.phone) {
+      remaining.push("Add Phone Number");
+    }
 
-    if (resume) completionPercentage += PROFILE_RULES.resume;
-    else remaining.push("Upload Resume");
+    if (!profile?.educationLevel) {
+      remaining.push("Add Education Level");
+    }
 
-    if (profile?.educationLevel) completionPercentage += PROFILE_RULES.education;
-    else remaining.push("Add Education Profile");
+    if (!profile?.institutionName) {
+      remaining.push("Add Institution");
+    }
 
-    if (profile?.phone || profile?.city) completionPercentage += PROFILE_RULES.contact;
-    else remaining.push("Add Contact Information");
+    if (!profile?.course) {
+      remaining.push("Add Course");
+    }
 
-    if (completionPercentage > 100) {
-      completionPercentage = 100;
+    if (!profile?.specialization) {
+      remaining.push("Add Specialization");
+    }
+
+    if (!profile?.graduationYear) {
+      remaining.push("Add Graduation Year");
+    }
+
+    if (!profile?.skills?.length) {
+      remaining.push("Add Skills");
+    }
+
+    if (!profile?.interests?.length) {
+      remaining.push("Add Interests");
+    }
+
+    if (!profile?.careerGoals?.length) {
+      remaining.push("Add Career Goals");
+    }
+
+    if (!profile?.resumeId) {
+      remaining.push("Upload Resume");
     }
 
     const profileCompletion = {
@@ -132,12 +158,19 @@ class DashboardService {
 
       profileCompletion,
 
-      recommendations: saved.map((item: any) => ({
-        id: item.opportunity.id,
-        title: item.opportunity.title,
-        organization: item.opportunity.organization,
-        deadline: item.opportunity.deadline,
-      })),
+      recommendations: recommendations
+        .slice(0, 4)
+        .map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          organization: item.organization,
+          deadline: item.deadline,
+          matchScore: item.matchScore,
+          profileMatchScore: item.profileMatchScore,
+          resumeMatchScore: item.resumeMatchScore,
+          isSaved: Boolean(item.isSaved),
+          slug: item.slug,
+        })),
 
       activity: activity.map((item: any) => ({
         id: item.id,

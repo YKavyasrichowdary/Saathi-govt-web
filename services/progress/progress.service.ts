@@ -1,62 +1,132 @@
-import xpService from "@/services/xp/xp.service";
-import missionService from "@/services/mission/mission.service";
-import roadmapProgressRepository from "@/repositories/roadmap/roadmap-progress.repository";
+import prisma from "@/lib/prisma";
+import activityService from "./activity.service";
 
 class ProgressService {
+  async getProgress(userId: string) {
+    const [
+      userXP,
+      missionsCompleted,
+      applications,
+      savedOpportunities,
+      resumeAnalyses,
+      roadmaps,
+      roadmapTasks,
+      currentStreak,
+      longestStreak,
+    ] = await Promise.all([
+      prisma.userXP.findUnique({
+        where: {
+          userId,
+        },
+      }),
 
-  async completeMission(
-    missionId: string,
-    userId: string,
-    rewardXP: number
-  ) {
+      prisma.mission.count({
+        where: {
+          userId,
+          status: "COMPLETED",
+        },
+      }),
 
-    // Step 1
-    await missionService.completeMission(
-      missionId
-    );
+      prisma.application.count({
+        where: {
+          userId,
+        },
+      }),
 
-    const mission =
-      await missionService.getMission(
-        missionId
+      prisma.savedOpportunity.count({
+        where: {
+          userId,
+        },
+      }),
+
+      prisma.resumeAnalysis.count({
+        where: {
+          userId,
+        },
+      }),
+
+      prisma.roadmap.findMany({
+        where: {
+          userId,
+        },
+        select: {
+          id: true,
+          title: true,
+          progress: true,
+          status: true,
+          targetDate: true,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+      }),
+
+      prisma.roadmapTask.findMany({
+        where: {
+          milestone: {
+            roadmap: {
+              userId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          status: true,
+          estimatedMinutes: true,
+          completedAt: true,
+        },
+      }),
+
+      activityService.getCurrentStreak(userId),
+
+      activityService.getLongestStreak(userId),
+    ]);
+
+    const activityDays =
+      await activityService.getActivityDays(
+        userId,
+        84
       );
 
-    if (mission?.roadmapTaskId) {
-
-      await roadmapProgressRepository.completeTask(
-        mission.roadmapTaskId
+    const completedRoadmapTasks =
+      roadmapTasks.filter(
+        (task: any) => task.status === "COMPLETED"
       );
 
-      const task =
-        await roadmapProgressRepository.getTask(
-          mission.roadmapTaskId
-        );
-
-      if (task) {
-
-        await roadmapProgressRepository.updateMilestoneStatus(
-          task.milestone.id
-        );
-
-        await roadmapProgressRepository.updateRoadmapProgress(
-          task.milestone.roadmap.id
-        );
-
-      }
-
-    }
-
-    // Step 2
-    await xpService.rewardXP(
-      userId,
-      rewardXP
-    );
+    const estimatedMinutesCompleted =
+      completedRoadmapTasks.reduce(
+        (total: number, task: any) =>
+          total + task.estimatedMinutes,
+        0
+      );
 
     return {
-      success: true,
+      xp: {
+        totalXP: userXP?.totalXP ?? 0,
+        level: userXP?.level ?? 1,
+        currentStreak,
+        longestStreak,
+        missionsCompleted:
+          userXP?.missionsCompleted ??
+          missionsCompleted,
+      },
+
+      stats: {
+        missionsCompleted,
+        applications,
+        savedOpportunities,
+        resumeAnalyses,
+        roadmaps: roadmaps.length,
+        roadmapTasksCompleted:
+          completedRoadmapTasks.length,
+        estimatedMinutesCompleted,
+      },
+
+      activityDays,
+
+      roadmaps,
     };
-
   }
-
 }
 
 export default new ProgressService();
