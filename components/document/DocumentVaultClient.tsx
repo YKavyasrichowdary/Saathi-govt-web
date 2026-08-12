@@ -16,9 +16,10 @@ interface DocumentItem {
 
 interface Props {
   documents: DocumentItem[];
+  primaryResumeId: string | null;
 }
 
-export default function DocumentVaultClient({ documents }: Props) {
+export default function DocumentVaultClient({ documents, primaryResumeId }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("ALL");
   const [sortBy, setSortBy] = useState("NEWEST");
@@ -190,8 +191,14 @@ export default function DocumentVaultClient({ documents }: Props) {
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           {filteredDocuments.map((document) => (
-            <DocumentCard key={document.id} document={document} />
-          ))}
+  <DocumentCard
+    key={document.id}
+    document={document}
+    isPrimaryResume={
+      document.id === primaryResumeId
+    }
+  />
+))}
         </div>
       )}
     </div>

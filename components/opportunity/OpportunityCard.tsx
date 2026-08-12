@@ -94,7 +94,7 @@ export default function OpportunityCard({
             )}
 
             {opportunity.deadline && (
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground" suppressHydrationWarning>
                 <CalendarDays className="h-4 w-4" />
                 {new Date(opportunity.deadline).toLocaleDateString("en-IN")}
               </div>

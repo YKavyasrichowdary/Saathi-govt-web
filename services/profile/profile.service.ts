@@ -9,6 +9,15 @@ class ProfileService {
   async completeProfile(userId: string, data: CreateProfileDto) {
     return await profileRepository.upsertProfile(userId, data);
   }
+  async setPrimaryResume(
+  userId: string,
+  documentId: string
+) {
+  return profileRepository.setPrimaryResume(
+    userId,
+    documentId
+  );
+}
 }
 
 export default new ProfileService();

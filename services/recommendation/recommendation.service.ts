@@ -1,6 +1,10 @@
 import recommendationRepository from "@/repositories/recommendation/recommendation.repository";
+import resumeAnalysisStorageService from "@/services/resume/resume-analysis-storage.service";
 import { RECOMMENDATION_WEIGHTS } from "@/constants/recommendation-weights";
-import { compareStrings } from "@/utils/recommendation";
+import {
+  compareStrings,
+  compareEducation,
+} from "@/utils/recommendation";
 import {
   MatchBreakdown,
   RecommendedOpportunity,
@@ -8,26 +12,38 @@ import {
 import profileCompletionService from "../profile/profile-completion.service";
 import { analyzeRecommendation } from "@/lib/intelligence";
 
+
+function getStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is string =>
+      typeof item === "string"
+  );
+}
+
 class RecommendationService {
   async getRecommendations(
     userId: string
   ): Promise<RecommendedOpportunity[]> {
     const profile =
-      await recommendationRepository.getProfile(userId);
+  await recommendationRepository.getProfile(userId);
 
-    if (!profile) {
-      return [];
-    }
+if (!profile) {
+  return [];
+}
 
-    const opportunities =
-      await recommendationRepository.getOpenOpportunities();
+const resumeAnalysis =
+  await resumeAnalysisStorageService.getPrimaryResumeAnalysis(
+    userId
+  );
 
-    const completion =
-      profileCompletionService.calculate(profile);
-
-    if (completion.percentage < 50) {
-      return [];
-    }
+const opportunities =
+  await recommendationRepository.getOpenOpportunities(
+    userId
+  );
 
     const recommendations = opportunities.map((opportunity: any) => {
       let earned = 0;
@@ -72,7 +88,7 @@ class RecommendationService {
         RECOMMENDATION_WEIGHTS.EDUCATION,
         opportunity.educationLevel,
         profile.educationLevel,
-        (a, b) => a === b
+        compareEducation
       );
 
       evaluate(
@@ -117,21 +133,13 @@ class RecommendationService {
         });
       }
 
-      if (opportunity.featured) {
-        possible += RECOMMENDATION_WEIGHTS.FEATURED;
-        earned += RECOMMENDATION_WEIGHTS.FEATURED;
-
-        breakdown.push({
-          category: "Featured",
-          matched: true,
-          weight: RECOMMENDATION_WEIGHTS.FEATURED,
-        });
-      }
-
       const searchableText = `
-${opportunity.title}
-${opportunity.description}
-${opportunity.organization}
+  ${opportunity.title}
+  ${opportunity.description}
+  ${opportunity.organization}
+  ${opportunity.skills.join(" ")}
+  ${opportunity.interests.join(" ")}
+  ${opportunity.careerTags.join(" ")}
 `.toLowerCase();
 
       if (profile.skills && profile.skills.length > 0) {
@@ -146,6 +154,52 @@ ${opportunity.organization}
               category: `Skill: ${skill.name}`,
               matched: true,
               weight: RECOMMENDATION_WEIGHTS.SKILL,
+            });
+
+            break;
+          }
+        }
+      }
+
+      const resumeStrengths =
+        getStringArray(
+          resumeAnalysis?.strengths
+        );
+
+      const resumeMissingSkills =
+        getStringArray(
+          resumeAnalysis?.missingSkills
+        );
+
+      if (resumeMissingSkills.length > 0) {
+        const matchingMissingSkill =
+          resumeMissingSkills.find(
+            (skill) =>
+              searchableText.includes(
+                skill.toLowerCase()
+              )
+          );
+
+        if (matchingMissingSkill) {
+          breakdown.push({
+            category: `Resume Gap: ${matchingMissingSkill}`,
+            matched: false,
+            weight: 0,
+          });
+        }
+      }
+
+      if (resumeStrengths.length > 0) {
+        for (const strength of resumeStrengths) {
+          if (
+            searchableText.includes(
+              strength.toLowerCase()
+            )
+          ) {
+            breakdown.push({
+              category: `Resume Strength: ${strength}`,
+              matched: true,
+              weight: 0,
             });
 
             break;
@@ -195,15 +249,89 @@ ${opportunity.organization}
         }
       }
 
-      const matchScore =
+      const profileMatchScore =
         possible === 0
           ? 0
-          : Math.round((earned / possible) * 100);
+          : Math.round(
+              (earned / possible) * 100
+            );
+
+      const opportunitySkills =
+        opportunity.skills.map((skill: string) =>
+          skill.toLowerCase().trim()
+        );
+
+      let resumeMatchScore = 50;
+
+      if (
+        resumeAnalysis &&
+        opportunitySkills.length > 0
+      ) {
+        let matchedSkills = 0;
+
+        for (const skill of opportunitySkills) {
+          const hasStrength =
+            resumeStrengths.some(
+              (strength) =>
+                strength
+                  .toLowerCase()
+                  .includes(skill) ||
+                skill.includes(
+                  strength.toLowerCase()
+                )
+            );
+
+          if (hasStrength) {
+            matchedSkills++;
+          }
+        }
+
+        resumeMatchScore =
+          Math.round(
+            (matchedSkills /
+              opportunitySkills.length) *
+              100
+          );
+
+        // Penalize relevant skills explicitly
+        // identified as missing from the resume.
+        for (const missingSkill of resumeMissingSkills) {
+          const normalizedMissing =
+            missingSkill.toLowerCase().trim();
+
+          if (
+            opportunitySkills.some(
+              (skill: string) =>
+                skill.includes(
+                  normalizedMissing
+                ) ||
+                normalizedMissing.includes(
+                  skill
+                )
+            )
+          ) {
+            resumeMatchScore = Math.max(
+              0,
+              resumeMatchScore - 10
+            );
+          }
+        }
+      }
+
+      const matchScore =
+        Math.round(
+          profileMatchScore * 0.7 +
+          resumeMatchScore * 0.3
+        );
 
       return {
         ...opportunity,
         matchScore,
+        profileMatchScore,
+        resumeMatchScore,
         breakdown,
+         isSaved:
+    Boolean(opportunity.bookmarks?.length),
       };
     });
 
@@ -217,7 +345,8 @@ ${opportunity.organization}
 
         analysis: analyzeRecommendation(
           profile,
-          recommendation
+          recommendation,
+          resumeAnalysis  
         ),
       })
     );

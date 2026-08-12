@@ -1,5 +1,6 @@
 import resumeAnalysisRepository from "@/repositories/resume/resume-analysis.repository";
 import { ResumeAnalysis } from "@/types/resume";
+import prisma from "@/lib/prisma";
 
 class ResumeAnalysisStorageService {
   async saveAnalysis(params: {
@@ -57,6 +58,48 @@ class ResumeAnalysisStorageService {
 
     return analysis;
   }
+
+  async getPrimaryResumeAnalysis(userId: string) {
+  const profile =
+    await prisma.profile.findUnique({
+      where: {
+        userId,
+      },
+      select: {
+        resumeId: true,
+      },
+    });
+
+  console.log(
+    "[Primary Resume Debug]",
+    {
+      userId,
+      resumeId: profile?.resumeId,
+    }
+  );
+
+  if (!profile?.resumeId) {
+    return null;
+  }
+
+  const analysis =
+    await resumeAnalysisRepository.findLatestByPrimaryResume(
+      userId,
+      profile.resumeId
+    );
+
+  console.log(
+    "[Primary Resume Analysis Debug]",
+    {
+      resumeId: profile.resumeId,
+      analysisId: analysis?.id ?? null,
+      analysisDocumentId:
+        analysis?.documentId ?? null,
+    }
+  );
+
+  return analysis;
+}
 
   async getHistory(userId: string) {
     return resumeAnalysisRepository.findByUser(userId);
