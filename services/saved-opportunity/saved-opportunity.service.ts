@@ -1,4 +1,5 @@
 import repository from "@/repositories/saved-opportunity/saved-opportunity.repository";
+import activityService from "@/services/progress/activity.service";
 import prisma from "@/lib/prisma";
 
 class SavedOpportunityService {
@@ -36,10 +37,14 @@ class SavedOpportunityService {
       );
     }
 
-    return repository.save(
+    const saved = await repository.save(
       userId,
       opportunityId
     );
+
+    await activityService.recordActivity(userId);
+
+    return saved;
   }
 
   async unsave(

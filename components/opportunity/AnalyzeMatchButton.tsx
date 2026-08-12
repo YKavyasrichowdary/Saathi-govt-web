@@ -58,6 +58,7 @@ export default function AnalyzeMatchButton({
         type="button"
         onClick={analyzeMatch}
         disabled={loading}
+        suppressHydrationWarning
         className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Sparkles className="h-4 w-4" />

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 
 import roadmapRepository from "@/repositories/roadmap/roadmap.repository";
+import activityService from "@/services/progress/activity.service";
 
 interface Params {
   params: Promise<{
@@ -64,6 +65,10 @@ export async function POST(
       await roadmapRepository.completeTask(
         taskId
       );
+
+    await activityService.recordActivity(
+      session.user.id
+    );
 
     await roadmapRepository.updateMilestoneStatus(
       task.milestoneId

@@ -4,21 +4,27 @@ import { Clock3, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TaskItemProps {
+  id: string;
   title: string;
   description: string;
   duration: string;
   reward: string;
   completed?: boolean;
   priority?: "High" | "Medium" | "Low";
+  onComplete?: (id: string) => void;
+  completing?: boolean;
 }
 
 export default function TaskItem({
+  id,
   title,
   description,
   duration,
   reward,
   completed = false,
   priority = "Medium",
+  onComplete,
+  completing = false,
 }: TaskItemProps) {
   const priorityColor = {
     High:
@@ -37,11 +43,25 @@ export default function TaskItem({
       <div className="flex gap-4">
 
         <div className="mt-1">
-          {completed ? (
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
-          ) : (
-            <div className="h-6 w-6 rounded-full border-2 border-primary" />
-          )}
+          <button
+            type="button"
+            disabled={completed || completing}
+            onClick={() => onComplete?.(id)}
+            aria-label={
+              completed
+                ? "Task completed"
+                : "Complete task"
+            }
+            className="rounded-full transition-transform hover:scale-105 disabled:cursor-default"
+          >
+            {completed ? (
+              <CheckCircle2 className="h-6 w-6 text-green-500" />
+            ) : completing ? (
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : (
+              <div className="h-6 w-6 rounded-full border-2 border-primary hover:bg-primary/10" />
+            )}
+          </button>
         </div>
 
         <div className="flex-1">

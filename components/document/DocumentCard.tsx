@@ -22,20 +22,22 @@ interface Props {
     fileSize: number;
     mimeType?: string;
     type?: string;
-    verified: boolean;
     createdAt?: string | Date;
   };
+  isPrimaryResume: boolean;
 }
 
 export default function DocumentCard({
   document,
+  isPrimaryResume,
 }: Props) {
 
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+ const [loading, setLoading] = useState(false);
+const [analyzing, setAnalyzing] = useState(false);
+const [settingPrimary, setSettingPrimary] = useState(false);
+const [showConfirm, setShowConfirm] = useState(false);
 
   async function viewDocument() {
 
@@ -117,6 +119,49 @@ export default function DocumentCard({
 
   }
 
+  async function setPrimaryResume() {
+  if (settingPrimary || isPrimaryResume) return;
+
+  setSettingPrimary(true);
+
+  try {
+    const res = await fetch(
+      "/api/documents/primary-resume",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          documentId: document.id,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.message ||
+          "Failed to set primary resume."
+      );
+    }
+
+    toast.success(
+      "Primary resume updated."
+    );
+
+    router.refresh();
+  } catch (error: any) {
+    toast.error(
+      error.message ||
+        "Failed to set primary resume."
+    );
+  } finally {
+    setSettingPrimary(false);
+  }
+}
+
   async function analyzeResume() {
   if (analyzing) return;
 
@@ -142,14 +187,6 @@ export default function DocumentCard({
   }
 }
 
-  const status = document.verified ? "Verified" : "Pending";
-
-  const badgeStyles: Record<string, string> = {
-    Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-    Verified: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    Rejected: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    Expired: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-  };
 
   return (
     <div className="surface-card rounded-2xl p-6 transition-all hover:shadow-md border border-border">
@@ -177,13 +214,25 @@ export default function DocumentCard({
 
         </div>
 
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-medium shrink-0 ${
-            badgeStyles[status] || badgeStyles.Pending
-          }`}
-        >
-          {status === "Verified" ? "🟢 Verified" : "🟡 Pending"}
-        </span>
+{document.type === "RESUME" && (
+  isPrimaryResume ? (
+    <span className="inline-flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-sm font-semibold text-primary">
+      <span>★</span>
+      Primary Resume
+    </span>
+  ) : (
+    <button
+      type="button"
+      onClick={setPrimaryResume}
+      disabled={settingPrimary}
+      className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {settingPrimary
+        ? "Setting..."
+        : "Set as Primary"}
+    </button>
+  )
+)}
 
       </div>
 

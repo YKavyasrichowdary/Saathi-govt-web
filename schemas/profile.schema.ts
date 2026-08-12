@@ -42,7 +42,6 @@ export const educationSchema = z.object({
     "POSTGRADUATE",
     "DOCTORATE",
     "CERTIFICATION",
-    "COMPETITIVE_EXAM",
     "OTHER",
   ]),
 

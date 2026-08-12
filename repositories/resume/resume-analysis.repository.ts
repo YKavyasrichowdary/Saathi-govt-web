@@ -7,6 +7,20 @@ class ResumeAnalysisRepository {
       data,
     });
   }
+  async findLatestByPrimaryResume(
+  userId: string,
+  documentId: string
+) {
+  return prisma.resumeAnalysis.findFirst({
+    where: {
+      userId,
+      documentId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
 
   async findById(id: string) {
   return prisma.resumeAnalysis.findUnique({

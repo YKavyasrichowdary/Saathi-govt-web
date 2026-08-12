@@ -71,6 +71,11 @@ export interface DashboardRecommendation {
   title: string;
   organization: string;
   deadline: Date | string | null;
+  matchScore: number;
+  profileMatchScore?: number;
+  resumeMatchScore?: number;
+  isSaved: boolean;
+  slug: string;
 }
 
 export interface DashboardActivity {

@@ -15,12 +15,6 @@ export const studentNavigation: NavItem[] = [
     group: "Home",
   },
   {
-    href: "/journey",
-    label: "My Journey",
-    icon: "Route",
-    group: "Home",
-  },
-  {
     href: "/opportunities",
     label: "Opportunities",
     icon: "Compass",
@@ -33,15 +27,15 @@ export const studentNavigation: NavItem[] = [
     group: "Discover",
   },
   {
+    href: "/recommendations",
+    label: "Recommendations",
+    icon: "Sparkles",
+    group: "Discover",
+  },
+  {
     href: "/ai",
     label: "AI Companion",
     icon: "MessageCircleHeart",
-    group: "Work",
-  },
-  {
-    href: "/preparation",
-    label: "Preparation",
-    icon: "BookOpen",
     group: "Work",
   },
   {
@@ -51,21 +45,9 @@ export const studentNavigation: NavItem[] = [
     group: "Work",
   },
   {
-    href: "/mock-tests",
-    label: "Mock Tests",
-    icon: "Trophy",
-    group: "Work",
-  },
-  {
     href: "/documents",
     label: "Documents",
     icon: "FileCheck2",
-    group: "Track",
-  },
-  {
-    href: "/applications",
-    label: "Applications",
-    icon: "ClipboardList",
     group: "Track",
   },
   {
@@ -91,11 +73,5 @@ export const studentNavigation: NavItem[] = [
     label: "Help Center",
     icon: "LifeBuoy",
     group: "You",
-  },
-  {
-    href: "/recommendations",
-    label: "Recommendations",
-    icon: "Sparkles",
-    group: "Discover",
   },
 ];

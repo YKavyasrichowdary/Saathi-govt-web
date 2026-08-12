@@ -85,10 +85,6 @@ export default function EducationStep() {
                     Certification
                   </SelectItem>
 
-                  <SelectItem value="COMPETITIVE_EXAM">
-                    Competitive Exam
-                  </SelectItem>
-
                   <SelectItem value="OTHER">
                     Other
                   </SelectItem>

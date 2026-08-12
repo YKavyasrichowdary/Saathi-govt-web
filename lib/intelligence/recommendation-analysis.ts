@@ -1,4 +1,10 @@
-import { Profile, Skill, Interest, CareerGoal } from "@prisma/client";
+import {
+  Profile,
+  Skill,
+  Interest,
+  CareerGoal,
+  ResumeAnalysis,
+} from "@prisma/client";
 import { RecommendationAnalysis, RecommendedOpportunity } from "@/types/recommendation";
 import { calculateProfileCompletion } from "@/lib/profile/completion";
 
@@ -33,20 +39,89 @@ function generateBestFor(recommendation: RecommendedOpportunity): string {
   return `Best for ${parts.join(" ")}.`;
 }
 
+function getStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is string =>
+      typeof item === "string"
+  );
+}
+
 export function analyzeRecommendation(
   profile: ProfileWithRelations | null,
-  recommendation: RecommendedOpportunity
+  recommendation: RecommendedOpportunity,
+  resumeAnalysis?: ResumeAnalysis | null
 ): RecommendationAnalysis {
   const score = recommendation.matchScore ?? 0;
+  const resumeStrengths =
+  getStringArray(
+    resumeAnalysis?.strengths
+  );
 
+const resumeMissingSkills =
+  getStringArray(
+    resumeAnalysis?.missingSkills
+  );
   // Step 2 — Derive strengths & missing directly from precomputed breakdown
   const strengths: string[] = (recommendation.breakdown || [])
     .filter((item) => item.matched)
     .map((item) => `${item.category} matches`);
 
+  if (resumeStrengths.length > 0) {
+  const opportunityText = `
+    ${recommendation.title}
+    ${recommendation.description}
+    ${recommendation.organization}
+    ${
+      Array.isArray(recommendation.skills)
+        ? recommendation.skills.join(" ")
+        : ""
+    }
+  `.toLowerCase();
+
+  for (const strength of resumeStrengths) {
+    if (
+      opportunityText.includes(
+        strength.toLowerCase()
+      )
+    ) {
+      strengths.push(
+        `Resume strength: ${strength}`
+      );
+    }
+  }
+}
   const missing: string[] = (recommendation.breakdown || [])
     .filter((item) => !item.matched)
     .map((item) => item.category);
+
+   if (resumeMissingSkills.length > 0) {
+  const opportunityText = `
+    ${recommendation.title}
+    ${recommendation.description}
+    ${recommendation.organization}
+    ${
+      Array.isArray(recommendation.skills)
+        ? recommendation.skills.join(" ")
+        : ""
+    }
+  `.toLowerCase();
+
+  for (const skill of resumeMissingSkills) {
+    if (
+      opportunityText.includes(
+        skill.toLowerCase()
+      )
+    ) {
+      missing.push(
+        `Resume gap: ${skill}`
+      );
+    }
+  }
+}
 
   // Rule-based Next Steps
   const nextSteps: string[] = [];

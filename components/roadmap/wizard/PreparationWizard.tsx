@@ -14,10 +14,12 @@ import AIThinkingScreen from "./AIThinkingScreen";
 
 interface PreparationWizardProps {
   opportunityId?: string;
+  targetDate?: string;
 }
 
 export default function PreparationWizard({
   opportunityId = "",
+  targetDate,
 }: PreparationWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -45,6 +47,7 @@ export default function PreparationWizard({
         },
         body: JSON.stringify({
           opportunityId,
+          targetDate,
           ...dataToSubmit,
         }),
       });

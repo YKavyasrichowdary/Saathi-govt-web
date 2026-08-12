@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -15,7 +16,7 @@ interface MissionHeroProps {
   progress: number;
   estimatedTime: string;
   reward: string;
-  matchIncrease: string;
+  matchIncrease?: string;
   dueText: string;
 }
 
@@ -28,6 +29,13 @@ export default function MissionHero({
   matchIncrease,
   dueText,
 }: MissionHeroProps) {
+  const continueHref = title.toLowerCase().includes("resume")
+    ? "/documents"
+    : title.toLowerCase().includes("profile")
+    ? "/profile"
+    : title.toLowerCase().includes("opportunity")
+    ? "/opportunities"
+    : "/roadmap";
   return (
     <motion.section
       initial={{ opacity: 0, y: 18 }}
@@ -118,12 +126,14 @@ export default function MissionHero({
             <div className="mt-2 flex flex-wrap gap-3">
 
               <span className="rounded-full bg-green-100 px-4 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                +{reward}
+                {reward}
               </span>
 
-              <span className="rounded-full bg-indigo-100 px-4 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
-                +{matchIncrease}
-              </span>
+              {matchIncrease && (
+                <span className="rounded-full bg-indigo-100 px-4 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                  {matchIncrease}
+                </span>
+              )}
 
             </div>
 
@@ -133,15 +143,13 @@ export default function MissionHero({
 
           <div className="mt-8 flex flex-wrap gap-4">
 
-            <button className="btn-primary flex items-center gap-2 px-6 py-3">
-              Continue Mission
-
-              <ArrowRight className="h-4 w-4" />
-            </button>
-
-            <button className="btn-secondary px-6 py-3">
+            <Link
+              href="/roadmap"
+              className="btn-primary flex items-center gap-2 px-6 py-3"
+            >
               View Journey
-            </button>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
 
           </div>
 

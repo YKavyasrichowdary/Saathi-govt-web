@@ -64,7 +64,11 @@ export default function RecommendationCard({
       </div>
 
       {/* Actions */}
-      <RecommendationActions slug={recommendation.slug} />
+      <RecommendationActions
+  opportunityId={recommendation.id}
+  slug={recommendation.slug}
+  isSaved={recommendation.isSaved}
+/>
     </div>
   );
 }

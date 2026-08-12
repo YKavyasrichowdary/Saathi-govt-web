@@ -1,28 +1,34 @@
 import prisma from "@/lib/prisma";
 
 class RecommendationRepository {
-async getProfile(userId: string) {
-  return prisma.profile.findUnique({
-    where: {
-      userId,
-    },
+  async getProfile(userId: string) {
+    return prisma.profile.findUnique({
+      where: {
+        userId,
+      },
+      include: {
+        skills: true,
+        interests: true,
+        careerGoals: true,
+      },
+    });
+  }
 
-    include: {
-      skills: true,
-      interests: true,
-      careerGoals: true,
-    },
-  });
-}
-
-  async getOpenOpportunities() {
+  async getOpenOpportunities(userId: string) {
     return prisma.opportunity.findMany({
       where: {
         status: "OPEN",
       },
 
       include: {
-        bookmarks: true,
+        bookmarks: {
+          where: {
+            userId,
+          },
+          select: {
+            id: true,
+          },
+        },
       },
 
       orderBy: [

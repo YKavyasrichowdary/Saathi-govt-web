@@ -6,7 +6,6 @@ import { AppShell } from "@/components/AppShell";
 import RoadmapHero from "@/components/roadmap/RoadmapHero";
 import ReadinessGauge from "@/components/roadmap/ReadinessGauge";
 import AIInsights from "@/components/roadmap/AIInsights";
-import TodayMissionCard from "@/components/roadmap/TodayMissionCard";
 import TodayPlan from "@/components/roadmap/TodayPlan";
 import MilestoneTimeline from "@/components/roadmap/MilestoneTimeline";
 import TaskChecklist from "@/components/roadmap/TaskChecklist";
@@ -108,23 +107,6 @@ export default async function RoadmapPage({
             dailyCapacity={roadmap.dailyHours * 60}
           />
         )}
-
-        <TodayMissionCard
-          title={
-            nextTask?.title ??
-            "All missions completed 🎉"
-          }
-          description={
-            nextTask?.description ??
-            "You're all caught up."
-          }
-          estimatedMinutes={
-            nextTask?.estimatedMinutes ?? 0
-          }
-          rewardXP={
-            nextTask?.rewardXP ?? 0
-          }
-        />
 
         <MilestoneTimeline
           milestones={milestones}

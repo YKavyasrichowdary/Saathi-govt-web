@@ -59,11 +59,11 @@ export default function QuickStats({
         />
 
         <StatCard
-          icon={<Trophy className="h-5 w-5" />}
-          label="Completed"
-          value={stats.analyses.toString()}
-          color="bg-pink-100 text-pink-600"
-        />
+  icon={<Trophy className="h-5 w-5" />}
+  label="Analyses"
+  value={stats.analyses.toString()}
+  color="bg-pink-100 text-pink-600"
+/>
 
       </div>
 

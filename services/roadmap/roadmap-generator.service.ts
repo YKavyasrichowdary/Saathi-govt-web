@@ -7,6 +7,9 @@ import { roadmapSchema } from "@/lib/validations/roadmap-schema";
 import { parseAIJson } from "@/lib/ai/parser";
 import { validateRoadmapCapacity } from "@/lib/ai/roadmap-validator";
 import { scheduleTasks } from "@/lib/roadmap/task-scheduler";
+import opportunityMatchService from "@/services/opportunity-match/opportunity-match.service";
+import activityService from "@/services/progress/activity.service";
+
 
 export interface GenerateRoadmapInput {
   userId: string;
@@ -35,7 +38,7 @@ class RoadmapGeneratorService {
     }
 
     // Step 3 — Fetch Required Data
-    const [user, profile, resume, opportunity, opportunityMatch] = await Promise.all([
+    const [user, profile, resume, opportunity] = await Promise.all([
       prisma.user.findUnique({
         where: {
           id: input.userId,
@@ -67,12 +70,21 @@ class RoadmapGeneratorService {
           id: input.opportunityId,
         },
       }),
+    ]);
 
-      opportunityMatchRepository.getByUserAndOpportunity(
+    let opportunityMatch =
+      await opportunityMatchRepository.getByUserAndOpportunity(
         input.userId,
         input.opportunityId
-      ),
-    ]);
+      );
+
+    if (!opportunityMatch) {
+      opportunityMatch =
+        await opportunityMatchService.analyze({
+          userId: input.userId,
+          opportunityId: input.opportunityId,
+        });
+    }
 
     // Step 4 — Validation
     if (!user) {
@@ -89,12 +101,6 @@ class RoadmapGeneratorService {
 
     if (!opportunity) {
       throw new Error("Opportunity not found.");
-    }
-
-    if (!opportunityMatch) {
-      throw new Error(
-        "Opportunity match analysis not found. Analyze your match before creating a roadmap."
-      );
     }
 
     // Step 5 — Add Match + Deadline to AI Context
@@ -254,6 +260,8 @@ class RoadmapGeneratorService {
         })),
       },
     });
+
+    await activityService.recordActivity(input.userId);
 
     return savedRoadmap;
   }

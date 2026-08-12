@@ -62,13 +62,13 @@ class ProfileCompletionService {
     check(
       profile.interests.length > 0,
       "Interests",
-      10
+      5
     );
 
     check(
       profile.careerGoals.length > 0,
       "Career Goals",
-      10
+      5
     );
 
     check(
@@ -80,7 +80,7 @@ class ProfileCompletionService {
     check(
       !!profile.state && !!profile.city,
       "Location",
-      10
+      5
     );
 
     return {

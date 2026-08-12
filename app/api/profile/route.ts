@@ -50,7 +50,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session =
+      await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -65,35 +66,98 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, phone, school, state, city, institutionName } = body;
 
-    // Update User name if provided
-    if (name) {
+    const {
+      name,
+      phone,
+      gender,
+      dateOfBirth,
+      educationLevel,
+      institutionName,
+      school,
+      university,
+      course,
+      specialization,
+      currentSemester,
+      graduationYear,
+      cgpa,
+      city,
+      state,
+      country,
+      bio,
+      linkedinUrl,
+      githubUrl,
+      portfolioUrl,
+      skills,
+      interests,
+      careerGoals,
+    } = body;
+
+    // Update User name separately because
+    // name belongs to User, not Profile.
+    if (typeof name === "string") {
       await prisma.user.update({
-        where: { id: session.user.id },
-        data: { name },
+        where: {
+          id: session.user.id,
+        },
+        data: {
+          name: name.trim(),
+        },
       });
     }
 
-    // Upsert Profile fields
-    await profileService.completeProfile(session.user.id, {
-      phone,
-      institutionName: school || institutionName,
-      state,
-      city,
-    });
+    const profile =
+      await profileService.completeProfile(
+        session.user.id,
+        {
+          phone,
+          gender,
+          dateOfBirth,
+          educationLevel,
+
+          // Keep backward compatibility with
+          // the old "school" field.
+          institutionName:
+            institutionName || school,
+
+          university,
+          course,
+          specialization,
+          currentSemester,
+          graduationYear,
+          cgpa,
+          city,
+          state,
+          country,
+          bio,
+          linkedinUrl,
+          githubUrl,
+          portfolioUrl,
+          skills,
+          interests,
+          careerGoals,
+        }
+      );
 
     return NextResponse.json({
       success: true,
-      message: "Profile updated successfully",
+      message:
+        "Profile updated successfully.",
+      profile,
     });
-
   } catch (error) {
-    console.error("Save profile error:", error);
+    console.error(
+      "Save profile error:",
+      error
+    );
+
     return NextResponse.json(
       {
         success: false,
-        message: "Something went wrong",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong",
       },
       {
         status: 500,

@@ -5,6 +5,7 @@ import MissionHero from "./MissionHero";
 interface DashboardHeroProps {
   greeting?: string;
   name?: string | null;
+  readinessScore?: number;
   mission?: {
     title: string;
     description: string;
@@ -17,16 +18,25 @@ interface DashboardHeroProps {
 export default function DashboardHero({
   greeting,
   name,
+  readinessScore = 0,
   mission,
 }: DashboardHeroProps) {
   return (
     <MissionHero
       title={mission?.title ?? "No Active Mission"}
       description={mission?.description ?? "You're all caught up."}
-      progress={0}
+      progress={readinessScore}
       estimatedTime={`${mission?.estimatedMinutes ?? 0} mins`}
-      reward={`+${mission?.rewardResumeScore ?? 0} Resume`}
-      matchIncrease={`+${mission?.rewardOpportunityMatch ?? 0}% Match`}
+      reward={
+        mission?.rewardResumeScore
+          ? `+${mission.rewardResumeScore} Resume`
+          : "Complete today's mission"
+      }
+      matchIncrease={
+        mission?.rewardOpportunityMatch
+          ? `+${mission.rewardOpportunityMatch}% Match`
+          : undefined
+      }
       dueText="Today"
     />
   );

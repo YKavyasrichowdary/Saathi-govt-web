@@ -13,15 +13,23 @@ export const opportunitySchema = z.object({
     "NGO",
   ]),
 
+  sourceName: z.string().optional(),
+
+  sourceUrl: z.string().url().optional().or(z.literal("")),
+
   type: z.enum([
     "SCHOLARSHIP",
     "HACKATHON",
     "INTERNSHIP",
     "JOB",
+    "COMPETITIVE_EXAM",
     "COURSE",
     "EVENT",
     "COMPETITION",
     "FELLOWSHIP",
+    "RESEARCH",
+    "GRANT",
+    "GOVERNMENT_SCHEME",
   ]),
 
   mode: z.enum([
@@ -61,7 +69,6 @@ export const opportunitySchema = z.object({
       "POSTGRADUATE",
       "DOCTORATE",
       "CERTIFICATION",
-      "COMPETITIVE_EXAM",
       "OTHER",
     ])
     .optional()

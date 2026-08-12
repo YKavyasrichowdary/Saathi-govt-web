@@ -16,7 +16,7 @@ export default async function OpportunityDetailsPage({
   const { slug } = await params;
 
   const opportunity =
-    await opportunityService.getBySlug(
+    await opportunityService.getOpportunity(
       slug
     );
 

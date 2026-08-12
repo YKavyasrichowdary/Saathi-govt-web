@@ -69,6 +69,7 @@ export default function SaveButton({
         toggleSave();
       }}
       disabled={loading}
+      suppressHydrationWarning
       className="rounded-full p-2 transition hover:bg-muted"
     >
       <Bookmark

@@ -11,23 +11,33 @@ interface DocumentItem {
   fileSize: number;
   mimeType?: string;
   type?: string;
-  verified: boolean;
   createdAt?: string | Date;
 }
 
 interface Props {
   documents: DocumentItem[];
+  primaryResumeId: string | null;
 }
 
-export default function DocumentVaultClient({ documents }: Props) {
+export default function DocumentVaultClient({ documents, primaryResumeId }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("ALL");
   const [sortBy, setSortBy] = useState("NEWEST");
 
   // Step 9 - Document Statistics
   const totalCount = documents.length;
-  const verifiedCount = documents.filter((d) => d.verified).length;
-  const pendingCount = documents.filter((d) => !d.verified).length;
+
+  const resumeCount = documents.filter(
+    (d) => d.type === "RESUME"
+  ).length;
+
+  const certificateCount = documents.filter(
+    (d) =>
+      d.type === "BONAFIDE" ||
+      d.type === "INCOME_CERTIFICATE" ||
+      d.type === "CASTE_CERTIFICATE"
+  ).length;
+ 
 
   // Step 5, 6, 7 - Search, Filter, Sorting
   const filteredDocuments = documents
@@ -105,21 +115,21 @@ export default function DocumentVaultClient({ documents }: Props) {
           </div>
         </div>
 
-        <div className="surface-card rounded-2xl p-4 text-center border border-yellow-500/20 bg-yellow-500/5">
-          <div className="text-2xl md:text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-            {pendingCount}
+        <div className="surface-card rounded-2xl p-4 text-center border border-border">
+          <div className="text-2xl md:text-3xl font-bold text-foreground">
+            {resumeCount}
           </div>
           <div className="text-xs font-medium text-muted-foreground mt-1">
-            Pending
+            Resumes
           </div>
         </div>
 
-        <div className="surface-card rounded-2xl p-4 text-center border border-green-500/20 bg-green-500/5">
-          <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">
-            {verifiedCount}
+        <div className="surface-card rounded-2xl p-4 text-center border border-border">
+          <div className="text-2xl md:text-3xl font-bold text-foreground">
+            {certificateCount}
           </div>
           <div className="text-xs font-medium text-muted-foreground mt-1">
-            Verified
+            Certificates
           </div>
         </div>
       </div>
@@ -181,8 +191,14 @@ export default function DocumentVaultClient({ documents }: Props) {
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           {filteredDocuments.map((document) => (
-            <DocumentCard key={document.id} document={document} />
-          ))}
+  <DocumentCard
+    key={document.id}
+    document={document}
+    isPrimaryResume={
+      document.id === primaryResumeId
+    }
+  />
+))}
         </div>
       )}
     </div>

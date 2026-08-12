@@ -22,7 +22,7 @@ type ExtendedGlobal = typeof globalThis & {
 
 const getPrismaClient = () => {
   const g = globalThis as ExtendedGlobal;
-  if (!g.prismaGlobal || !("opportunityMatch" in g.prismaGlobal)) {
+  if (!g.prismaGlobal || !("userActivityDay" in g.prismaGlobal)) {
     g.prismaGlobal = prismaClientSingleton();
   }
   return g.prismaGlobal;
@@ -30,9 +30,12 @@ const getPrismaClient = () => {
 
 // Force reset cached client during development when schema changes
 if (process.env.NODE_ENV !== "production") {
-  (globalThis as ExtendedGlobal).prismaGlobal = prismaClientSingleton();
+  const g = globalThis as ExtendedGlobal;
+  if (!g.prismaGlobal || !("userActivityDay" in g.prismaGlobal)) {
+    g.prismaGlobal = prismaClientSingleton();
+  }
 }
 
-const prisma = (globalThis as ExtendedGlobal).prismaGlobal || getPrismaClient();
+const prisma = getPrismaClient();
 
 export default prisma;

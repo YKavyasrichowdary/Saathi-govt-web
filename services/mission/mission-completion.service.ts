@@ -10,7 +10,7 @@ class MissionCompletionService {
   ) {
 
 
-  await missionService.completeMission(missionId);
+  await missionService.completeMission(userId, missionId);
 
 
   await xpService.rewardXP(userId, rewardXP);
